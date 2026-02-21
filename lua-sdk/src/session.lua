@@ -31,10 +31,7 @@ function Session:query(query_str)
   if not db then
     error(QueryError.new("Database is closed"))
   end
-  local json_str, err_code, err_name = graphlite_ffi.query(db, self._session_id, query_str)
-  if not json_str then
-    error(QueryError.new("Query failed: " .. (err_name or "unknown")))
-  end
+  local json_str = self:query_raw(query_str)
   local ok, data = pcall(json_util.decode, json_str)
   if not ok then
     error(JsonError.new("Failed to parse query result: " .. tostring(data)))
@@ -42,8 +39,23 @@ function Session:query(query_str)
   return result_module.new(data)
 end
 
+function Session:query_raw(query_str)
+  if self._closed then
+    error(QueryError.new("Session is closed"))
+  end
+  local db = self._conn._db
+  if not db then
+    error(QueryError.new("Database is closed"))
+  end
+  local json_str, _, err_name = graphlite_ffi.query(db, self._session_id, query_str)
+  if not json_str then
+    error(QueryError.new("Query failed: " .. (err_name or "unknown")))
+  end
+  return json_str
+end
+
 function Session:execute(statement)
-  self:query(statement)
+  self:query_raw(statement)
 end
 
 function Session:close()

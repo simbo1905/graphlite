@@ -75,6 +75,7 @@ session:execute("SESSION SET GRAPH social")
 session:execute("INSERT (p:Person {name: 'Alice', age: 30})")
 
 local result = session:query("MATCH (p:Person) RETURN p.name, p.age")
+local raw_json = session:query_raw("MATCH (p:Person) RETURN p.name, p.age")
 for _, row in ipairs(result.rows) do
   print(row["p.name"], row["p.age"])
 end
@@ -103,7 +104,7 @@ lua-sdk/
 ├── src/
 │   ├── graphlite_ffi.lua   -- FFI bindings (cdef + load)
 │   ├── connection.lua      -- GraphLite.open(), db:session(), db:close()
-│   ├── session.lua         -- session:query(), session:execute(), session:close()
+│   ├── session.lua         -- session:query(), session:query_raw(), session:execute(), session:close()
 │   ├── errors.lua          -- Typed error tables
 │   ├── result.lua          -- QueryResult with flattened rows
 │   └── json_util.lua       -- JSON parsing (dkjson, no embedded parser)
@@ -124,7 +125,7 @@ Or set `GRAPH_LITE_LUA_SDK` to your SDK path.
 
 ```bash
 cd examples/lua/sdk
-lua drug_discovery.lua
+luajit drug_discovery.lua
 ```
 
 ## Branching
