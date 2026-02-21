@@ -26,7 +26,6 @@ BUILD_MODE="dev"
 RUN_TESTS=false
 CLEAN_BUILD=false
 CARGO_FLAGS=""
-DENY_WARNINGS=true
 
 # Function to print colored messages
 print_info() {
@@ -66,10 +65,6 @@ while [[ $# -gt 0 ]]; do
             CLEAN_BUILD=true
             shift
             ;;
-        --allow-warnings)
-            DENY_WARNINGS=false
-            shift
-            ;;
         --help)
             echo "GraphLite Build Script"
             echo ""
@@ -79,7 +74,6 @@ while [[ $# -gt 0 ]]; do
             echo "  --release    Build in release mode (optimized)"
             echo "  --test       Run tests after building"
             echo "  --clean      Clean before building"
-            echo "  --allow-warnings  Allow compiler warnings (not recommended)"
             echo "  --help       Show this help message"
             echo ""
             echo "Examples:"
@@ -128,20 +122,16 @@ if ! command -v cargo &> /dev/null; then
 fi
 
 print_info "Build mode: ${BUILD_MODE}"
-if [ "$DENY_WARNINGS" = true ]; then
-    print_info "Warning policy: deny warnings (warnings fail the build)"
-    if [ -n "${RUSTFLAGS:-}" ]; then
-        export RUSTFLAGS="${RUSTFLAGS} -Dwarnings"
-    else
-        export RUSTFLAGS="-Dwarnings"
-    fi
-    if [ -n "${RUSTDOCFLAGS:-}" ]; then
-        export RUSTDOCFLAGS="${RUSTDOCFLAGS} -Dwarnings"
-    else
-        export RUSTDOCFLAGS="-Dwarnings"
-    fi
+print_info "Warning policy: deny warnings (warnings fail the build)"
+if [ -n "${RUSTFLAGS:-}" ]; then
+    export RUSTFLAGS="${RUSTFLAGS} -Dwarnings"
 else
-    print_warning "Warning policy: warnings allowed (--allow-warnings)"
+    export RUSTFLAGS="-Dwarnings"
+fi
+if [ -n "${RUSTDOCFLAGS:-}" ]; then
+    export RUSTDOCFLAGS="${RUSTDOCFLAGS} -Dwarnings"
+else
+    export RUSTDOCFLAGS="-Dwarnings"
 fi
 print_info "Date: $(date)"
 echo ""
