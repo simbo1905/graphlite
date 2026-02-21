@@ -130,6 +130,16 @@ static int json_parse_hex4(const char *text, unsigned int *codepoint_out) {
     return 1;
 }
 
+static int json_has_n_chars(const char *text, size_t count) {
+    size_t i;
+    for (i = 0; i < count; i++) {
+        if (text[i] == '\0') {
+            return 0;
+        }
+    }
+    return 1;
+}
+
 static void json_add_utf8(luaL_Buffer *buffer, unsigned int codepoint) {
     if (codepoint <= 0x7F) {
         luaL_addchar(buffer, (char)codepoint);
@@ -205,6 +215,11 @@ static int json_parse_string(lua_State *L, json_parser *parser) {
                 case 'u': {
                     unsigned int codepoint;
 
+                    if (!json_has_n_chars(parser->cursor, 4)) {
+                        json_set_error(parser, "truncated unicode escape");
+                        return 0;
+                    }
+
                     if (!json_parse_hex4(parser->cursor, &codepoint)) {
                         json_set_error(parser, "invalid unicode escape");
                         return 0;
@@ -219,6 +234,11 @@ static int json_parse_string(lua_State *L, json_parser *parser) {
                             return 0;
                         }
                         parser->cursor += 2;
+
+                        if (!json_has_n_chars(parser->cursor, 4)) {
+                            json_set_error(parser, "truncated low surrogate");
+                            return 0;
+                        }
 
                         if (!json_parse_hex4(parser->cursor, &low_surrogate)) {
                             json_set_error(parser, "invalid low surrogate");
