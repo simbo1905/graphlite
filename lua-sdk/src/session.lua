@@ -56,7 +56,9 @@ end
 
 function Session:close()
   if not self._closed and self._conn and self._conn._db then
+    -- Explicitly ignore close status; close is best-effort for cleanup paths.
     graphlite_ffi.close_session(self._conn._db, self._session_id)
+    -- Best effort - don't error on close
     self._closed = true
   end
 end
