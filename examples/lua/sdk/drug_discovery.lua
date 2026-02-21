@@ -83,7 +83,6 @@ package.path = sdk_path .. "/?.lua;" .. sdk_path .. "/?/init.lua;" .. package.pa
 -- Imports
 ------------------------------------------------------------------------
 local GraphLite = require("src.connection").GraphLite
-local errors    = require("src.errors")
 
 ------------------------------------------------------------------------
 -- Helper: print a query result as a simple table

@@ -47,7 +47,6 @@ package.path = sdk_path .. "/?.lua;" .. sdk_path .. "/?/init.lua;" .. package.pa
 -- Example
 ------------------------------------------------------------------------
 local GraphLite = require("src.connection").GraphLite
-local errors    = require("src.errors")
 
 local function main()
   print("=== GraphLite Lua SDK -- Basic Usage ===\n")
