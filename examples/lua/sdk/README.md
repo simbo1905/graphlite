@@ -1,8 +1,10 @@
-# GraphLite LuaJIT High-Level SDK Examples
+# GraphLite Lua High-Level SDK Examples
 
-This directory contains examples that use the GraphLite **LuaJIT high-level SDK** from the `luajit-sdk` branch.
+This directory contains examples that use the GraphLite **Lua high-level SDK** from the `luajit-sdk` branch.
 
-> The full SDK implementation is intentionally **not** stored on `main`.  
+> **Requires Lua 5.4+** and `luarocks` for dependency management.
+>
+> The full SDK implementation is intentionally **not** stored on `main`.
 > These examples auto-locate a separate `lua-sdk/` checkout.
 
 ## Overview
@@ -38,21 +40,28 @@ libgraphlite_ffi.{so,dylib,dll} (Rust FFI)
 
 ### Prerequisites
 
-1. **Build the GraphLite FFI library**:
+1. **Lua 5.4+** and **luarocks**:
+   ```bash
+   # Ubuntu / Debian
+   sudo apt-get install lua5.4 luarocks
+
+   # macOS (Homebrew)
+   brew install lua luarocks
+   ```
+
+2. **Build the GraphLite FFI library**:
    ```bash
    cargo build --release -p graphlite-ffi
    ```
 
-2. **Install LuaJIT** (Lua 5.1 semantics):
-   - Linux: `sudo apt-get install luajit`
-   - macOS: `brew install luajit`
-
-3. **Checkout the Lua SDK branch in a separate clone/location**:
+3. **Checkout the Lua SDK branch** and run setup:
    ```bash
    cd ~/github/deepgraphai
    git clone https://github.com/deepgraphai/GraphLite.git  # if needed
    cd GraphLite
    git checkout luajit-sdk
+   cd lua-sdk
+   ./setup.sh   # checks Lua >= 5.4, luarocks, installs dkjson
    ```
 
 ### SDK Auto-Discovery
@@ -81,7 +90,7 @@ Run:
 
 ```bash
 cd examples/lua/sdk
-luajit drug_discovery.lua
+lua drug_discovery.lua
 ```
 
 ### Basic Usage (Smoke Test)
@@ -92,10 +101,11 @@ Run:
 
 ```bash
 cd examples/lua/sdk
-luajit basic_usage.lua
+lua basic_usage.lua
 ```
 
 ## Important Notes
 
-- This SDK is **LuaJIT-only** (Lua 5.1 compatible), **not** PUC Lua 5.4.
+- Requires **Lua 5.4+** (not LuaJIT or PUC Lua 5.1/5.2/5.3).
+- JSON parsing uses `dkjson` installed via `luarocks` (no embedded JSON code).
 - On Windows, set `GRAPH_LITE_LUA_SDK` and ensure `graphlite_ffi.dll` is discoverable.

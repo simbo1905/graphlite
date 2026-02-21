@@ -1,8 +1,10 @@
-# GraphLite LuaJIT High-Level SDK
+# GraphLite Lua High-Level SDK
 
-A session-centric, high-level Lua API for GraphLite that mirrors the Python SDK semantics. Uses LuaJIT's built-in `ffi` library to bind against the GraphLite C FFI shared library.
+A session-centric, high-level Lua API for GraphLite that mirrors the Python SDK semantics. Uses the `ffi` library to bind against the GraphLite C FFI shared library.
 
-**This SDK is LuaJIT-only (Lua 5.1 compatible), not PUC Lua 5.4.**
+> **Requires Lua 5.4+** and `luarocks` for dependency management.
+> JSON parsing is handled by [`dkjson`](http://dkolf.de/src/dkjson-lua.fsl/home),
+> installed automatically via the provided `setup.sh` script.
 
 ## Architecture
 
@@ -18,26 +20,36 @@ libgraphlite_ffi.so / .dylib / .dll (Rust)
 
 ## Prerequisites
 
-1. **Build the GraphLite FFI library**:
+1. **Lua 5.4+** and **luarocks**:
+   ```bash
+   # Ubuntu / Debian
+   sudo apt-get install lua5.4 luarocks
+
+   # macOS (Homebrew)
+   brew install lua luarocks
+   ```
+
+2. **Run the setup script** to validate prerequisites and install dkjson:
+   ```bash
+   cd lua-sdk
+   ./setup.sh
+   ```
+   This checks Lua >= 5.4, verifies luarocks is present, and installs `dkjson`.
+
+3. **Build the GraphLite FFI library** (Rust toolchain required):
    ```bash
    cd /path/to/GraphLite
    cargo build --release -p graphlite-ffi
    ```
 
-2. **LuaJIT** (2.0 or 2.1):
+4. **Make the shared library discoverable**:
    ```bash
-   # Ubuntu/Debian
-   sudo apt install luajit
+   # Linux
+   export LD_LIBRARY_PATH=/path/to/GraphLite/target/release:$LD_LIBRARY_PATH
 
    # macOS
-   brew install luajit
+   export DYLD_LIBRARY_PATH=/path/to/GraphLite/target/release:$DYLD_LIBRARY_PATH
    ```
-
-3. **dkjson** (required for JSON parsing; engine returns JSON as bytes):
-   ```bash
-   luarocks install dkjson
-   ```
-   Or run `./setup.sh` from examples/lua/sdk/.
 
 ## API
 
@@ -95,6 +107,7 @@ lua-sdk/
 │   ├── errors.lua          -- Typed error tables
 │   ├── result.lua          -- QueryResult with flattened rows
 │   └── json_util.lua       -- JSON parsing (dkjson, no embedded parser)
+├── setup.sh               -- Prerequisite checker & dkjson installer
 ├── tests/
 │   └── smoke_test.lua      -- Minimal smoke test
 └── README.md
@@ -111,7 +124,7 @@ Or set `GRAPH_LITE_LUA_SDK` to your SDK path.
 
 ```bash
 cd examples/lua/sdk
-luajit drug_discovery.lua
+lua drug_discovery.lua
 ```
 
 ## Branching
