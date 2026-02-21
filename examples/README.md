@@ -20,7 +20,8 @@ examples/
 │   └── sdk/           # High-level SDK examples
 │       └── drug_discovery.py
 ├── lua/
-│   └── sdk/           # High-level LuaJIT SDK examples
+│   └── sdk/           # High-level Lua SDK examples
+│       ├── setup.sh
 │       ├── drug_discovery.lua
 │       └── basic_usage.lua
 └── java/
@@ -75,21 +76,24 @@ cd examples/python/sdk
 python3 drug_discovery.py
 ```
 
-### LuaJIT Examples
+### Lua Examples
 
 #### High-Level SDK
-Session-centric LuaJIT API (requires LuaJIT 2.0+, **not** PUC Lua 5.4):
+Session-centric Lua API (requires Lua 5.4+ and luarocks):
 ```bash
 cd examples/lua/sdk
 
+# First-time setup: checks Lua >= 5.4, luarocks, installs dkjson
+./setup.sh
+
 # Drug discovery
-LD_LIBRARY_PATH=../../../target/release luajit drug_discovery.lua
+LD_LIBRARY_PATH=../../../target/release lua drug_discovery.lua
 
 # Basic usage
-LD_LIBRARY_PATH=../../../target/release luajit basic_usage.lua
+LD_LIBRARY_PATH=../../../target/release lua basic_usage.lua
 ```
 
-> **Note:** The LuaJIT SDK source lives on the `luajit-sdk` branch.
+> **Note:** The Lua SDK source lives on the `luajit-sdk` branch.
 > See `examples/lua/sdk/README.md` for setup instructions.
 
 ### Java Examples
@@ -137,7 +141,7 @@ Comprehensive pharmaceutical research example showing:
 - [Rust SDK Examples](./rust/sdk/README.md)
 - [Python Bindings](./python/bindings/README.md)
 - [Python SDK](./python/sdk/README.md)
-- [LuaJIT SDK](./lua/sdk/README.md)
+- [Lua SDK](./lua/sdk/README.md)
 
 ## Prerequisites
 
@@ -156,13 +160,17 @@ cd bindings/python
 pip install -e .
 ```
 
-### LuaJIT
+### Lua
 ```bash
+# Install Lua 5.4+ and luarocks
+sudo apt-get install lua5.4 luarocks
+
 # Build FFI library
 cargo build --release -p graphlite-ffi
 
-# Install LuaJIT (Ubuntu/Debian)
-sudo apt-get install luajit
+# Run setup (checks Lua >= 5.4, luarocks, installs dkjson)
+cd examples/lua/sdk
+./setup.sh
 
 # Checkout the SDK (luajit-sdk branch)
 git fetch origin luajit-sdk

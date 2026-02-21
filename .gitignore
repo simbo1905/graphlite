@@ -52,6 +52,10 @@ gradle/
 graphlite-ffi/data/
 my_db/
 
+# Lua dependencies installed via luarocks
+dkjson.lua
+lua_modules/
+
 # GitHub Actions local testing
 .secrets
 .env

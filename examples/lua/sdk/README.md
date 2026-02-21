@@ -1,8 +1,9 @@
-# GraphLite LuaJIT High-Level SDK Examples
+# GraphLite Lua High-Level SDK Examples
 
-This directory contains examples using the GraphLite High-Level LuaJIT SDK (from the `luajit-sdk` branch).
+This directory contains examples using the GraphLite High-Level Lua SDK (from the `luajit-sdk` branch).
 
-> **This SDK is LuaJIT-only (Lua 5.1 compatible via LuaJIT), not PUC Lua 5.4.**
+> **Requires Lua 5.4+** and `luarocks` for dependency management.
+> JSON parsing uses `dkjson` (installed via luarocks) — no custom JSON code.
 
 ## Overview
 
@@ -17,7 +18,7 @@ The High-Level SDK provides an ergonomic, session-centric API for GraphLite with
 ```
 Your Application (drug_discovery.lua)
       ↓
-GraphLite LuaJIT SDK (lua-sdk/src/)
+GraphLite Lua SDK (lua-sdk/src/)
       ↓
 graphlite_ffi.lua  (ffi.cdef + ffi.load wrapper)
       ↓
@@ -28,24 +29,30 @@ libgraphlite_ffi.so / .dylib / .dll  (Rust FFI)
 
 ### Prerequisites
 
-1. **LuaJIT** (2.0+ or 2.1-beta):
+1. **Lua 5.4+** and **luarocks**:
    ```bash
    # Ubuntu / Debian
-   sudo apt-get install luajit
+   sudo apt-get install lua5.4 luarocks
 
    # macOS (Homebrew)
-   brew install luajit
+   brew install lua luarocks
    ```
 
-2. **Build the GraphLite FFI library**:
+2. **Run the setup script** to validate prerequisites and install dkjson:
+   ```bash
+   cd examples/lua/sdk
+   ./setup.sh
+   ```
+
+3. **Build the GraphLite FFI library**:
    ```bash
    cd ~/github/simbo1905/graphlite
    cargo build --release -p graphlite-ffi
    ```
 
-3. **LuaJIT SDK Dependency**
+4. **Lua SDK Dependency**
 
-   The LuaJIT SDK is on the `luajit-sdk` branch of this repository:
+   The Lua SDK is on the `luajit-sdk` branch of this repository:
 
    ```bash
    cd ~/github/simbo1905/graphlite
@@ -54,6 +61,12 @@ libgraphlite_ffi.so / .dylib / .dll  (Rust FFI)
    # Or simply checkout the branch in a separate clone:
    # git clone https://github.com/simbo1905/graphlite.git graphlite-luajit-sdk
    # cd graphlite-luajit-sdk && git checkout luajit-sdk
+   ```
+
+   Then run the SDK setup too:
+   ```bash
+   cd lua-sdk
+   ./setup.sh   # checks Lua >= 5.4, luarocks, installs dkjson
    ```
 
    The examples will automatically find the SDK using this search order:
@@ -76,7 +89,7 @@ A comprehensive pharmaceutical research example demonstrating:
 **Run:**
 ```bash
 cd examples/lua/sdk
-LD_LIBRARY_PATH=../../../target/release luajit drug_discovery.lua
+LD_LIBRARY_PATH=../../../target/release lua drug_discovery.lua
 ```
 
 ### Basic Usage Example
@@ -85,7 +98,7 @@ A minimal example covering open/session/insert/query/close:
 
 ```bash
 cd examples/lua/sdk
-LD_LIBRARY_PATH=../../../target/release luajit basic_usage.lua
+LD_LIBRARY_PATH=../../../target/release lua basic_usage.lua
 ```
 
 ## API Differences from Low-Level FFI
@@ -94,7 +107,7 @@ LD_LIBRARY_PATH=../../../target/release luajit basic_usage.lua
 ```lua
 local ffi = require("ffi")
 local lib = ffi.load("graphlite_ffi")
--- manually manage C pointers, error codes, string freeing…
+-- manually manage C pointers, error codes, string freeing...
 ```
 
 ### High-Level SDK (This Example)
@@ -112,20 +125,21 @@ db:close()
 2. Session object with methods instead of manual session ID strings
 3. Cleaner, session-centric API
 4. Typed errors (ConnectionError, SessionError, QueryError, etc.)
-5. Automatic JSON decoding into Lua tables
+5. JSON decoding via `dkjson` (luarocks) into Lua tables
 6. Best-effort `__gc` finalizers for resource cleanup
 
 ## Requirements
 
-- LuaJIT 2.0+ (Lua 5.1 semantics)
+- Lua 5.4+
+- luarocks (for installing dkjson)
 - GraphLite FFI library (built from this repository)
 - The `luajit-sdk` branch checked out for the SDK source
 
 ## Domain Model (Drug Discovery)
 
 ```
-Compound → TESTED_IN → Assay → MEASURES_ACTIVITY_ON → Target (Protein)
-Compound → INHIBITS → Target (with IC50 measurements)
+Compound -> TESTED_IN -> Assay -> MEASURES_ACTIVITY_ON -> Target (Protein)
+Compound -> INHIBITS -> Target (with IC50 measurements)
 ```
 
 **Use Cases**: Target-based drug discovery, compound optimization, clinical trial tracking, pharmaceutical knowledge graphs.

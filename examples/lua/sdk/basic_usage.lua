@@ -1,15 +1,16 @@
-#!/usr/bin/env luajit
---- Basic Usage Example for GraphLite High-Level LuaJIT SDK
+#!/usr/bin/env lua
+--- Basic Usage Example for GraphLite High-Level Lua SDK
 --
 -- Minimal example: open database, create session, insert nodes,
 -- query rows, close session, close database.
 --
--- Run with: luajit basic_usage.lua
+-- Requires Lua 5.4+ and dkjson (install via: ./setup.sh)
+--
+-- Run with: lua basic_usage.lua
 
 ------------------------------------------------------------------------
 -- SDK path bootstrapper (identical logic to drug_discovery.lua)
 ------------------------------------------------------------------------
-local ffi = require("ffi")
 
 local function resolve_sdk_path()
   local env = os.getenv("GRAPHLITE_LUA_SDK")
@@ -29,10 +30,11 @@ end
 local sdk_path = resolve_sdk_path()
 if not sdk_path then
   io.stderr:write([[
-ERROR: GraphLite LuaJIT SDK not found.
+ERROR: GraphLite Lua SDK not found.
 
 Set GRAPHLITE_LUA_SDK or checkout the luajit-sdk branch at:
   ~/github/simbo1905/graphlite/
+Then run: cd lua-sdk && ./setup.sh
 
 See examples/lua/sdk/README.md for full setup instructions.
 ]])
@@ -48,7 +50,7 @@ local GraphLite = require("src.connection").GraphLite
 local errors    = require("src.errors")
 
 local function main()
-  print("=== GraphLite LuaJIT SDK — Basic Usage ===\n")
+  print("=== GraphLite Lua SDK -- Basic Usage ===\n")
 
   local db_path = "./basic_usage_lua_sdk_db"
   os.execute("rm -rf " .. db_path .. " 2>/dev/null")

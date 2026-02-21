@@ -1,9 +1,11 @@
-#!/usr/bin/env luajit
---- Drug Discovery Example using GraphLite High-Level LuaJIT SDK
+#!/usr/bin/env lua
+--- Drug Discovery Example using GraphLite High-Level Lua SDK
 --
 -- This example demonstrates how the GraphLite High-Level SDK can be used for
 -- pharmaceutical research, modeling the relationships between compounds, targets
 -- (proteins), and assays.
+--
+-- Requires Lua 5.4+ and dkjson (install via: ./setup.sh)
 --
 -- This version uses the high-level SDK from the luajit-sdk branch, which provides:
 --   - Session-centric API (session objects vs session IDs)
@@ -19,12 +21,11 @@
 --   Compound -> TESTED_IN -> Assay -> MEASURES_ACTIVITY_ON -> Target (Protein)
 --   Compound -> INHIBITS -> Target (with IC50 measurements)
 --
--- Run with: luajit drug_discovery.lua
+-- Run with: lua drug_discovery.lua
 
 ------------------------------------------------------------------------
 -- SDK path bootstrapper
 ------------------------------------------------------------------------
-local ffi = require("ffi")
 
 local function resolve_sdk_path()
   -- 1. Environment variable override
@@ -53,19 +54,20 @@ end
 local sdk_path = resolve_sdk_path()
 if not sdk_path then
   io.stderr:write([[
-ERROR: GraphLite LuaJIT SDK not found.
+ERROR: GraphLite Lua SDK not found.
 
-The high-level LuaJIT SDK lives on the 'luajit-sdk' branch.
+The high-level Lua SDK lives on the 'luajit-sdk' branch.
 Please set it up using ONE of the following methods:
 
-  Option A — set the environment variable:
+  Option A - set the environment variable:
     export GRAPHLITE_LUA_SDK=/path/to/graphlite/lua-sdk
 
-  Option B — checkout the branch in the expected location:
+  Option B - checkout the branch in the expected location:
     cd ~/github/simbo1905
     git clone https://github.com/simbo1905/graphlite.git graphlite  # if needed
     cd graphlite
     git checkout luajit-sdk
+    cd lua-sdk && ./setup.sh   # installs dkjson via luarocks
 
   The examples expect the SDK at:
     ~/github/simbo1905/graphlite/lua-sdk/
@@ -100,7 +102,7 @@ end
 -- Main
 ------------------------------------------------------------------------
 local function main()
-  print("=== GraphLite High-Level LuaJIT SDK Drug Discovery Example ===\n")
+  print("=== GraphLite High-Level Lua SDK Drug Discovery Example ===\n")
 
   local db_path = "./drug_discovery_lua_sdk_db"
 
@@ -395,9 +397,10 @@ local function main()
     print("  - Created relationship types: TESTED_IN, MEASURES_ACTIVITY_ON, INHIBITS")
     print("  - Demonstrated graph traversals for drug discovery workflows")
     print("  - Showed IC50-based compound filtering and ranking")
-    print("  - Used High-Level LuaJIT SDK features:")
+    print("  - Used High-Level Lua SDK features:")
     print("    - Session-centric API (session:query() vs manual session ID)")
     print("    - Typed errors (ConnectionError, SessionError, QueryError)")
+    print("    - JSON parsing via dkjson (luarocks)")
     print("    - Clean, idiomatic Lua interface")
     print("\nDatabase location: " .. db_path .. "/")
     print("To clean up: rm -rf " .. db_path .. "/")
