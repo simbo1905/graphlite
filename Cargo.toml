@@ -5,6 +5,7 @@ members = [
     "gql-cli",
     "sdk-rust",
     "graphlite-ffi",
+    "jdt-graphlite-json-layer",
 ]
 
 [workspace.package]

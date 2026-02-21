@@ -1,0 +1,22 @@
+[package]
+name = "jdt-graphlite-json-layer"
+version = "0.1.0"
+edition = "2021"
+description = "JSON persistence layer for GraphLite with JTD validation and JDT transformation"
+license = "Apache-2.0"
+
+[lib]
+name = "jdt_graphlite_json_layer"
+path = "src/lib.rs"
+
+[dependencies]
+graphlite = { path = "../graphlite", version = "0.0.1" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+uuid = { workspace = true }
+log = { workspace = true }
+chrono = { workspace = true }
+
+[dev-dependencies]
+tempfile = { workspace = true }
