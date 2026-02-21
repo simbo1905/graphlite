@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+         http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>io.graphlite.examples</groupId>
+    <artifactId>graphlite-java-sdk-panama-examples</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
+    <name>GraphLite Java Panama SDK Examples</name>
+    <description>High-level Java SDK examples backed by Java FFM</description>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.release>25</maven.compiler.release>
+        <graphlite.sdk.version>0.1.0-SNAPSHOT</graphlite.sdk.version>
+        <maven.compiler.plugin.version>3.15.0</maven.compiler.plugin.version>
+        <exec.plugin.version>3.6.3</exec.plugin.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>io.graphlite</groupId>
+            <artifactId>graphlite-sdk-panama</artifactId>
+            <version>${graphlite.sdk.version}</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven.compiler.plugin.version}</version>
+                <configuration>
+                    <release>${maven.compiler.release}</release>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>${exec.plugin.version}</version>
+                <configuration>
+                    <mainClass>DrugDiscovery</mainClass>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>

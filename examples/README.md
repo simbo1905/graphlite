@@ -20,7 +20,10 @@ examples/
 │   └── sdk/           # High-level SDK examples
 │       └── drug_discovery.py
 └── java/
-    └── bindings/      # Java bindings examples
+    ├── bindings/       # Java low-level bindings examples (JNA)
+    │   └── BasicUsage.java
+    └── sdk-panama/     # Java 25 high-level SDK examples (FFM/Panama)
+        ├── DrugDiscovery.java
         └── BasicUsage.java
 ```
 
@@ -73,16 +76,33 @@ python3 drug_discovery.py
 
 ### Java Examples
 
-First, build and install the Java bindings to your local Maven repository:
+#### Low-level Java bindings (JNA)
+
+First, build and install the low-level Java bindings:
 ```bash
 cd bindings/java
 mvn install -DskipTests -Dmaven.javadoc.skip=true
 ```
 
-Then run the example:
+Then run the low-level example:
 ```bash
 cd examples/java/bindings
 mvn clean compile exec:java
+```
+
+#### High-level Java SDK (Panama / Java 25)
+
+```bash
+# Build Rust FFI shared library
+cargo build --release -p graphlite-ffi
+
+# Build/install Java SDK module
+cd java-sdk
+mvn clean install
+
+# Run high-level examples
+cd examples/java/sdk-panama
+mvn -q compile exec:java -Dexec.mainClass=DrugDiscovery
 ```
 
 ## Example Descriptions
@@ -116,6 +136,7 @@ Comprehensive pharmaceutical research example showing:
 - [Rust SDK Examples](./rust/sdk/README.md)
 - [Python Bindings](./python/bindings/README.md)
 - [Python SDK](./python/sdk/README.md)
+- [Java SDK (Panama) Examples](./java/sdk-panama/README.md)
 
 ## Prerequisites
 
@@ -136,8 +157,8 @@ pip install -e .
 
 ### Java
 ```bash
-# Build JNI library
-cargo build --release -p graphlite-jni
+# Build FFI library used by Java 25 FFM SDK
+cargo build --release -p graphlite-ffi
 ```
 
 ## Contributing
