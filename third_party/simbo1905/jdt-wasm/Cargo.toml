@@ -1,0 +1,3 @@
+[workspace]
+members = ["jdt-codegen", "jdt-wasm-transformer"]
+resolver = "2"

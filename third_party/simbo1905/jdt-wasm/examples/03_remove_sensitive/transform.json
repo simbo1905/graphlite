@@ -1,0 +1,11 @@
+{
+  "user": {
+    "@jdt.remove": ["password", "apiKey"],
+    "profile": {
+      "@jdt.remove": ["ssn"]
+    }
+  },
+  "metadata": {
+    "@jdt.remove": ["internalNotes"]
+  }
+}

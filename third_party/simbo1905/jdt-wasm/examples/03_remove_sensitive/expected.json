@@ -1,0 +1,14 @@
+{
+  "user": {
+    "id": 12345,
+    "username": "johndoe",
+    "email": "john@example.com",
+    "profile": {
+      "name": "John Doe",
+      "phone": "+1-555-1234"
+    }
+  },
+  "metadata": {
+    "createdAt": "2024-01-01T00:00:00Z"
+  }
+}

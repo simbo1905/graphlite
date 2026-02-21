@@ -1,0 +1,11 @@
+{
+  "name": "my-app",
+  "version": "1.0.1",
+  "description": "A sample application",
+  "config": {
+    "port": 8080,
+    "host": "localhost",
+    "logging": true
+  },
+  "author": "JDT Example"
+}

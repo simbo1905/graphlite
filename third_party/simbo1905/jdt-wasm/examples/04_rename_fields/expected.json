@@ -1,0 +1,10 @@
+{
+  "id": 12345,
+  "username": "johndoe",
+  "email": "john@example.com",
+  "createdAt": "2024-01-01",
+  "account_settings": {
+    "notifications": true,
+    "theme": "dark"
+  }
+}
