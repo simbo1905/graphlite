@@ -56,10 +56,11 @@ $(MODULE): graphlite_lua.c
 	@echo "Built $@ successfully"
 
 run: build
-	LD_LIBRARY_PATH="$(TARGET_RELEASE):$$LD_LIBRARY_PATH" lua5.4 basic_usage.lua
-
-run-mac: build
+ifeq ($(UNAME_S),Darwin)
 	DYLD_LIBRARY_PATH="$(TARGET_RELEASE):$$DYLD_LIBRARY_PATH" lua5.4 basic_usage.lua
+else
+	LD_LIBRARY_PATH="$(TARGET_RELEASE):$$LD_LIBRARY_PATH" lua5.4 basic_usage.lua
+endif
 
 clean:
 	rm -f $(MODULE) graphlite_lua.so graphlite_lua.dylib graphlite_lua.dll

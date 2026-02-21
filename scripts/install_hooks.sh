@@ -3,9 +3,9 @@
 # Install Git Hooks for GraphLite
 # This script sets up pre-commit hooks that enforce rules
 
-set -e  # Exit on error
+set -e # Exit on error
 
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 HOOKS_DIR="$PROJECT_ROOT/.git/hooks"
 
@@ -14,33 +14,25 @@ echo ""
 
 # Check if .git directory exists
 if [ ! -d "$PROJECT_ROOT/.git" ]; then
-    echo "❌ Error: Not a git repository"
-    echo "   Run 'git init' first"
-    exit 1
+	echo "❌ Error: Not a git repository"
+	echo "   Run 'git init' first"
+	exit 1
 fi
 
 # Create hooks directory if it doesn't exist
 mkdir -p "$HOOKS_DIR"
 
-    echo "   Continue anyway? (y/n)"
-    read -r response
-    if [[ ! "$response" =~ ^[Yy]$ ]]; then
-        echo "❌ Installation cancelled"
-        exit 1
-    fi
-fi
-
 # Backup existing hook if present
 if [ -f "$HOOKS_DIR/pre-commit" ]; then
-    backup_file="$HOOKS_DIR/pre-commit.backup.$(date +%s)"
-    echo "📦 Backing up existing pre-commit hook to: $(basename $backup_file)"
-    cp "$HOOKS_DIR/pre-commit" "$backup_file"
+	backup_file="$HOOKS_DIR/pre-commit.backup.$(date +%s)"
+	echo "📦 Backing up existing pre-commit hook to: $(basename $backup_file)"
+	cp "$HOOKS_DIR/pre-commit" "$backup_file"
 fi
 
 # Install pre-commit hook
 echo "📝 Creating pre-commit hook..."
 
-cat > "$HOOKS_DIR/pre-commit" << 'HOOK_EOF'
+cat >"$HOOKS_DIR/pre-commit" <<'HOOK_EOF'
 #!/bin/bash
 
 # Rule Enforcement Pre-commit Hook for GraphLite

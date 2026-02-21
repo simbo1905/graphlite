@@ -40,7 +40,7 @@ This compiles `graphlite_lua.c` into a shared library:
 - **macOS:** `graphlite_lua.dylib`
 
 The Makefile uses:
-- `-I../../graphlite-ffi` for the GraphLite header
+- `-I.` for the GraphLite header (as it's bundled locally)
 - `-L../../target/release -lgraphlite_ffi` for linking
 
 ### 3. Set runtime library path
@@ -57,7 +57,7 @@ export LD_LIBRARY_PATH="$(pwd)/../../target/release:$LD_LIBRARY_PATH"
 export DYLD_LIBRARY_PATH="$(pwd)/../../target/release:$DYLD_LIBRARY_PATH"
 ```
 
-Or run via `make run` (Linux) or `make run-mac` (macOS), which sets the path automatically.
+Or run via `make run`, which sets the path automatically.
 
 ## Run the demo
 
@@ -105,7 +105,7 @@ Query results are returned as JSON from the FFI; the C module parses them into L
 ## Platform Notes
 
 - **Linux:** Tested with Lua 5.4 and `liblua5.4-dev`. Use `make run`.
-- **macOS:** Use `make run-mac` to set `DYLD_LIBRARY_PATH`.
+- **macOS:** Use `make run` to set `DYLD_LIBRARY_PATH`.
 - **Windows:** Not tested. You would need to adapt the Makefile for `graphlite_lua.dll` and `graphlite_ffi.dll`, and ensure both are on `PATH` or in the same directory as the Lua script.
 
 ## Files

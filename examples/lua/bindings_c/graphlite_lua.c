@@ -429,8 +429,6 @@ LUALIB_API int luaopen_graphlite_lua(lua_State *L) {
     luaL_newmetatable(L, DB_MT);
     lua_pushcfunction(L, l_db_gc);
     lua_setfield(L, -2, "__gc");
-    lua_pushcfunction(L, l_close);
-    lua_setfield(L, -2, "close");
     lua_newtable(L);
     for (const luaL_Reg *r = db_methods; r->name; r++) {
         lua_pushcfunction(L, r->func);
