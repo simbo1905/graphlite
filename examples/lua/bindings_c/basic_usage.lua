@@ -18,6 +18,7 @@ local function get_temp_db_path()
 end
 
 local db_path = get_temp_db_path()
+os.execute("rm -rf " .. db_path)
 print("Using temporary database: " .. db_path .. "\n")
 
 -- Load module (requires graphlite_lua.so in package.cpath)

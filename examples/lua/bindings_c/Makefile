@@ -17,7 +17,7 @@ TARGET_RELEASE := $(ROOT)/target/release
 # Platform detection
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Darwin)
-  MODULE := graphlite_lua.dylib
+  MODULE := graphlite_lua.so
   FFI_LIB := $(TARGET_RELEASE)/libgraphlite_ffi.dylib
   LDFLAGS_EXTRA := -undefined dynamic_lookup
 else ifeq ($(UNAME_S),Linux)

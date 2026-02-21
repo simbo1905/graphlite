@@ -159,7 +159,8 @@ static int j_parse_pair(lua_State *L, JState *j) {
 }
 
 /* Parse {"values":{...}} row object */
-static int j_parse_row(lua_State *L, JState *j) {
+/* Suppress unused warning: may be used via FFI/reflection or kept for completeness */
+__attribute__((unused)) static int j_parse_row(lua_State *L, JState *j) {
     j_skip(j);
     if (j->p >= j->end || *j->p != '{') return 0;
     j->p++;
@@ -217,8 +218,14 @@ static int j_parse_rows(lua_State *L, JState *j) {
         /* Parse {"values":{...}} */
         if (!j_match(j, "{\"values\":")) break;
         j_parse_values_obj(L, j);
-        j_skip(j);
-        if (j->p < j->end && *j->p == '}') j->p++;
+        
+        int depth = 1;
+        while (j->p < j->end && depth > 0) {
+            if (*j->p == '{') depth++;
+            else if (*j->p == '}') depth--;
+            j->p++;
+        }
+        
         lua_rawseti(L, -2, ++idx);
         j_skip(j);
         if (j->p < j->end && *j->p == ',') j->p++;
@@ -241,8 +248,8 @@ static int json_to_lua(lua_State *L, const char *json, size_t len) {
         if (j.p >= j.end || *j.p == '}') break;
         if (j_match(&j, "\"rows\":")) {
             if (!j_parse_rows(L, &j)) return 0;
-            lua_setfield(L, -2, "rows");
             row_count = (int)lua_rawlen(L, -1);
+            lua_setfield(L, -2, "rows");
         } else if (j_match(&j, "\"variables\":")) {
             j_skip(&j);
             if (j.p < j.end && *j.p == '[') {
@@ -406,7 +413,8 @@ static const luaL_Reg db_methods[] = {
     {NULL, NULL}
 };
 
-static int l_db_index(lua_State *L) {
+/* Suppress unused warning: may be used via FFI/reflection or kept for completeness */
+__attribute__((unused)) static int l_db_index(lua_State *L) {
     lua_pushvalue(L, 2);
     lua_gettable(L, lua_upvalueindex(1));
     if (!lua_isnil(L, -1)) return 1;

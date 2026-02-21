@@ -17,11 +17,7 @@ typedef enum GraphLiteErrorCode {
   JsonError = 7,
 } GraphLiteErrorCode;
 
-typedef struct Arc_QueryCoordinator Arc_QueryCoordinator;
-
-typedef struct GraphLiteDB {
-  struct Arc_QueryCoordinator coordinator;
-} GraphLiteDB;
+typedef struct GraphLiteDB GraphLiteDB;
 
 struct GraphLiteDB *graphlite_open(const char *path, enum GraphLiteErrorCode *error_out);
 char *graphlite_create_session(struct GraphLiteDB *db,
