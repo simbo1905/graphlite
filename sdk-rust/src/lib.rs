@@ -74,6 +74,7 @@ pub use graphlite::{QueryInfo, QueryPlan, QueryResult, QueryType, Row, Value};
 // SDK modules
 pub mod connection;
 pub mod error;
+pub mod json_graph;
 pub mod query;
 pub mod result;
 pub mod transaction;
@@ -81,6 +82,7 @@ pub mod transaction;
 // Re-export main types for convenience
 pub use connection::{GraphLite, Session};
 pub use error::{Error, Result};
+pub use json_graph::{JsonGraphLayer, JtdValidationError};
 pub use query::QueryBuilder;
 pub use result::TypedResult;
 pub use transaction::Transaction;

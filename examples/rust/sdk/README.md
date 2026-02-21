@@ -35,6 +35,30 @@ cargo run --example basic_usage
 
 **Expected output:**
 ```
+
+### 2. json_store_roundtrip.rs
+
+Save and load full JSON documents through the SDK JSON layer.
+
+```bash
+cargo run -p graphlite-rust-sdk --example json_store_roundtrip
+```
+
+### 3. json_validate_before_persist.rs
+
+Validate JSON instances against a JTD schema before persistence.
+
+```bash
+cargo run -p graphlite-rust-sdk --example json_validate_before_persist
+```
+
+### 4. json_query_transform.rs
+
+Query JSON through GQL and apply a JDT transform to each result document.
+
+```bash
+cargo run -p graphlite-rust-sdk --example json_query_transform
+```
 === GraphLite SDK Basic Usage Example ===
 
 1. Opening database...

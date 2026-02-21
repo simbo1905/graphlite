@@ -20,14 +20,20 @@ doctest = false
 # Core GraphLite library
 graphlite = { path = "../graphlite", version = "0.0.1" }
 
+# Vendored simbo1905 crates
+jdt-codegen = { path = "../third_party/simbo1905/jdt-wasm/jdt-codegen" }
+jtd-codegen = { path = "../third_party/simbo1905/jtd-wasm/jtd-codegen" }
+
 # Re-export commonly needed dependencies
 serde = { workspace = true }
 serde_json = { workspace = true }
 tokio = { workspace = true }
 thiserror = { workspace = true }
+chrono = { workspace = true }
 
 [dev-dependencies]
 tokio = { workspace = true }
+tempfile = { workspace = true }
 
 [[example]]
 name = "basic_usage"
@@ -36,3 +42,15 @@ path = "../examples/rust/sdk/basic_usage.rs"
 [[example]]
 name = "drug_discovery"
 path = "../examples/rust/sdk/drug_discovery/main.rs"
+
+[[example]]
+name = "json_store_roundtrip"
+path = "../examples/rust/sdk/json_store_roundtrip.rs"
+
+[[example]]
+name = "json_validate_before_persist"
+path = "../examples/rust/sdk/json_validate_before_persist.rs"
+
+[[example]]
+name = "json_query_transform"
+path = "../examples/rust/sdk/json_query_transform.rs"

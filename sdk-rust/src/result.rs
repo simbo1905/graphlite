@@ -235,7 +235,7 @@ fn value_to_type<T: DeserializeOwned>(value: &Value) -> Result<T> {
 }
 
 /// Convert a GraphLite Value to a serde_json Value
-fn value_to_json(value: &Value) -> serde_json::Value {
+pub(crate) fn value_to_json(value: &Value) -> serde_json::Value {
     match value {
         Value::Null => serde_json::Value::Null,
         Value::Boolean(b) => serde_json::Value::Bool(*b),

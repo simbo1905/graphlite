@@ -6,6 +6,10 @@ members = [
     "sdk-rust",
     "graphlite-ffi",
 ]
+exclude = [
+    "third_party/simbo1905/jdt-wasm",
+    "third_party/simbo1905/jtd-wasm",
+]
 
 [workspace.package]
 version = "0.0.1"
