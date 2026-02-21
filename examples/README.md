@@ -97,6 +97,9 @@ Build the Rust FFI shared library first, then build the Lua module:
 cargo build --release -p graphlite-ffi
 cd examples/lua/bindings_c
 
+# Install dkjson locally via luarocks (checks Lua >= 5.4)
+./setup.sh
+
 # Build graphlite_lua.so (Linux/macOS example)
 gcc -O2 -std=c99 -fPIC -shared graphlite_lua.c -o graphlite_lua.so \
   -I../../../graphlite-ffi \

@@ -1,0 +1,8 @@
+# LuaRocks local dependency tree (dkjson)
+.rocks/
+
+# Built Lua C module artifacts
+graphlite_lua.so
+graphlite_lua.dylib
+graphlite_lua.dll
+graphlite_lua.bundle

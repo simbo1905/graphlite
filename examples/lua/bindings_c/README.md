@@ -9,6 +9,7 @@ This is intentionally small and low-level (similar in spirit to the Java `BasicU
 ## Files
 
 - `graphlite_lua.c` - tiny Lua C module (`luaopen_graphlite_lua`)
+- `setup.sh` - verifies Lua 5.4+/luarocks and installs `dkjson` locally
 - `basic_usage.lua` - basic end-to-end demo script
 - `README.md` - build/run instructions
 
@@ -18,11 +19,11 @@ This is intentionally small and low-level (similar in spirit to the Java `BasicU
 - `gl.open(db_path) -> db`
 - `db:create_session(user) -> session_id`
 - `db:execute(session_id, query_string) -> nil`
-- `db:query(session_id, query_string) -> { rows = {...}, row_count = N, variables = {...} }`
+- `db:query(session_id, query_string) -> json_bytes`
 - `db:close_session(session_id)`
 - `db:close()`
 
-Errors are raised as Lua errors and include GraphLite error code + code name.
+Errors are raised as Lua errors and include GraphLite error code + code name. JSON decoding is done in Lua with `dkjson`, not in C.
 
 ## Build
 
@@ -40,15 +41,25 @@ This produces:
 - macOS: `target/release/libgraphlite_ffi.dylib`
 - Windows: `target/release/graphlite_ffi.dll`
 
-### 2) Build Lua C module
-
-Go to the demo directory:
+### 2) Enter demo directory
 
 ```bash
 cd examples/lua/bindings_c
 ```
 
-#### Linux (gcc + pkg-config)
+### 3) Install Lua JSON dependency (dkjson via luarocks)
+
+Run setup (checks Lua exists and is >= 5.4, checks `luarocks`, installs `dkjson` into local `.rocks/`):
+
+```bash
+./setup.sh
+```
+
+`basic_usage.lua` automatically loads `dkjson` from this local `.rocks/` tree.
+
+### 4) Build Lua C module
+
+#### Linux (gcc + pkg-config, lua5.4 headers/dev package required)
 
 ```bash
 gcc -O2 -std=c99 -fPIC -shared graphlite_lua.c -o graphlite_lua.so \
@@ -117,10 +128,22 @@ The demo loads the module with:
 local gl = require("graphlite_lua")
 ```
 
+And decodes query JSON bytes with:
+
+```lua
+local json = require("dkjson")
+```
+
+## Git ignore for downloaded parser
+
+`setup.sh` installs `dkjson` under `.rocks/` and `.rocks/` is ignored by `examples/lua/bindings_c/.gitignore`.
+
 ## Smoke Checklist
 
 - `require("graphlite_lua")` succeeds
+- `require("dkjson")` succeeds after running `./setup.sh`
 - `gl.version()` prints a version string
+- `db:query(...)` returns JSON bytes and `dkjson.decode(...)` succeeds
 - basic query returns `row_count == 3` for all persons
 - filtered query returns `row_count == 2` for `age > 25`
 - aggregation query returns one row (count + avg)
@@ -136,4 +159,5 @@ local gl = require("graphlite_lua")
 - `graphlite_query`
 - `graphlite_free_string`
 
+`db:query` returns the raw JSON payload from `graphlite_query` (as a Lua string/bytes).
 `db:execute` is a thin wrapper over `graphlite_query` that ignores the returned JSON payload.
