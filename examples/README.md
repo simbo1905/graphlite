@@ -100,12 +100,8 @@ cd examples/lua/bindings_c
 # Install dkjson locally via luarocks (checks Lua >= 5.4)
 ./setup.sh
 
-# Build graphlite_lua.so (Linux/macOS example)
-gcc -O2 -std=c99 -fPIC -shared graphlite_lua.c -o graphlite_lua.so \
-  -I../../../graphlite-ffi \
-  $(pkg-config --cflags lua5.4) \
-  -L../../../target/release -lgraphlite_ffi \
-  $(pkg-config --libs lua5.4)
+# Build graphlite_lua module (Makefile uses -Werror)
+make
 
 # Make Rust FFI shared library discoverable
 export LD_LIBRARY_PATH="$(pwd)/../../../target/release:${LD_LIBRARY_PATH}"

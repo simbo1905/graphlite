@@ -9,6 +9,7 @@ This is intentionally small and low-level (similar in spirit to the Java `BasicU
 ## Files
 
 - `graphlite_lua.c` - tiny Lua C module (`luaopen_graphlite_lua`)
+- `Makefile` - builds module with strict warnings (`-Werror`)
 - `setup.sh` - verifies Lua 5.4+/luarocks and installs `dkjson` locally
 - `basic_usage.lua` - basic end-to-end demo script
 - `README.md` - build/run instructions
@@ -59,10 +60,22 @@ Run setup (checks Lua exists and is >= 5.4, checks `luarocks`, installs `dkjson`
 
 ### 4) Build Lua C module
 
+Preferred:
+
+```bash
+make
+```
+
+`Makefile` enforces strict warnings and fails the build on warnings (`-Werror`).  
+For FFI-style callback signatures, `unused parameter` warnings are explicitly suppressed (`-Wno-unused-parameter`).
+
+Manual compile examples (if needed):
+
 #### Linux (gcc + pkg-config, lua5.4 headers/dev package required)
 
 ```bash
-gcc -O2 -std=c99 -fPIC -shared graphlite_lua.c -o graphlite_lua.so \
+gcc -O2 -std=c99 -fPIC -Wall -Wextra -Wpedantic -Werror -Wno-unused-parameter \
+  -shared graphlite_lua.c -o graphlite_lua.so \
   -I../../../graphlite-ffi \
   $(pkg-config --cflags lua5.4) \
   -L../../../target/release -lgraphlite_ffi \
@@ -72,7 +85,8 @@ gcc -O2 -std=c99 -fPIC -shared graphlite_lua.c -o graphlite_lua.so \
 #### macOS (clang + pkg-config)
 
 ```bash
-clang -O2 -std=c99 -fPIC -shared graphlite_lua.c -o graphlite_lua.so \
+clang -O2 -std=c99 -fPIC -Wall -Wextra -Wpedantic -Werror -Wno-unused-parameter \
+  -shared graphlite_lua.c -o graphlite_lua.so \
   -I../../../graphlite-ffi \
   $(pkg-config --cflags lua5.4) \
   -L../../../target/release -lgraphlite_ffi \
@@ -84,7 +98,8 @@ clang -O2 -std=c99 -fPIC -shared graphlite_lua.c -o graphlite_lua.so \
 #### Windows (MinGW example)
 
 ```bash
-gcc -O2 -std=c99 -shared graphlite_lua.c -o graphlite_lua.dll \
+gcc -O2 -std=c99 -Wall -Wextra -Wpedantic -Werror -Wno-unused-parameter \
+  -shared graphlite_lua.c -o graphlite_lua.dll \
   -I../../../graphlite-ffi \
   -IC:/lua/include -LC:/lua/lib -llua54 \
   -L../../../target/release -lgraphlite_ffi
