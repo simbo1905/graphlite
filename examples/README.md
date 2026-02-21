@@ -13,6 +13,10 @@ examples/
 │   └── sdk/           # SDK examples (high-level ergonomic API)
 │       ├── basic_usage.rs
 │       └── drug_discovery/
+├── lua/
+│   └── bindings_c/    # Tiny Lua 5.4 C module demo
+│       ├── graphlite_lua.c
+│       └── basic_usage.lua
 ├── python/
 │   ├── bindings/      # FFI bindings examples (low-level)
 │   │   ├── basic_usage.py
@@ -85,6 +89,28 @@ cd examples/java/bindings
 mvn clean compile exec:java
 ```
 
+### Lua 5.4 Example (Tiny C Module)
+
+Build the Rust FFI shared library first, then build the Lua module:
+
+```bash
+cargo build --release -p graphlite-ffi
+cd examples/lua/bindings_c
+
+# Build graphlite_lua.so (Linux/macOS example)
+gcc -O2 -std=c99 -fPIC -shared graphlite_lua.c -o graphlite_lua.so \
+  -I../../../graphlite-ffi \
+  $(pkg-config --cflags lua5.4) \
+  -L../../../target/release -lgraphlite_ffi \
+  $(pkg-config --libs lua5.4)
+
+# Make Rust FFI shared library discoverable
+export LD_LIBRARY_PATH="$(pwd)/../../../target/release:${LD_LIBRARY_PATH}"
+
+# Run
+lua5.4 basic_usage.lua
+```
+
 ## Example Descriptions
 
 ### Simple/Basic Usage
@@ -114,6 +140,7 @@ Comprehensive pharmaceutical research example showing:
 
 - [Rust Bindings Examples](./rust/bindings/README.md)
 - [Rust SDK Examples](./rust/sdk/README.md)
+- [Lua 5.4 Tiny C Module Demo](./lua/bindings_c/README.md)
 - [Python Bindings](./python/bindings/README.md)
 - [Python SDK](./python/sdk/README.md)
 
