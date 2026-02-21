@@ -19,9 +19,14 @@ examples/
 │   │   └── drug_discovery.py
 │   └── sdk/           # High-level SDK examples
 │       └── drug_discovery.py
-└── java/
-    └── bindings/      # Java bindings examples
-        └── BasicUsage.java
+├── java/
+│   └── bindings/      # Java bindings examples
+│       └── BasicUsage.java
+└── lua/
+    └── bindings_c/    # Lua 5.4 C module demo (minimal, no FFI)
+        ├── basic_usage.lua
+        ├── graphlite_lua.c
+        └── Makefile
 ```
 
 ## Quick Start by Language
@@ -71,6 +76,21 @@ cd examples/python/sdk
 python3 drug_discovery.py
 ```
 
+### Lua 5.4 Examples
+
+Minimal C module demo (Lua 5.4 has no built-in FFI):
+
+```bash
+# Build FFI library first
+cargo build --release -p graphlite-ffi
+
+# Build and run Lua demo
+cd examples/lua/bindings_c
+make run
+```
+
+See [examples/lua/bindings_c/README.md](./lua/bindings_c/README.md) for details.
+
 ### Java Examples
 
 First, build and install the Java bindings to your local Maven repository:
@@ -116,6 +136,7 @@ Comprehensive pharmaceutical research example showing:
 - [Rust SDK Examples](./rust/sdk/README.md)
 - [Python Bindings](./python/bindings/README.md)
 - [Python SDK](./python/sdk/README.md)
+- [Lua 5.4 C Bindings](./lua/bindings_c/README.md)
 
 ## Prerequisites
 
