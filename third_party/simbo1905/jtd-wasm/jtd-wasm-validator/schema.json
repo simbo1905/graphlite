@@ -1,0 +1,10 @@
+{
+  "properties": {
+    "name": { "type": "string" },
+    "age":  { "type": "uint8" },
+    "tags": { "elements": { "type": "string" } }
+  },
+  "optionalProperties": {
+    "email": { "type": "string" }
+  }
+}

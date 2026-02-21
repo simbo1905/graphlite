@@ -1,0 +1,42 @@
+# Rust / Cargo
+/target
+**/*.rs.bk
+
+# WASM build artifacts
+/pkg
+/wasm-pkg
+
+# Node
+node_modules/
+package-lock.json
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# xmake
+.xmake/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test artifacts
+/tmp/
+.tmp/
+
+# Demo artifacts
+/target/release/jtd-codegen
+/examples/nginx.conf
+/examples/nginx.pid
+/examples/*/validator.js
+/examples/*/wasm/src/validator.rs
+/examples/*/wasm/target/
+/examples/*/wasm/Cargo.lock
+/examples/*/pkg/
+
+# Session dumps (development)
+session-*.md

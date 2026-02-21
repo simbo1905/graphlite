@@ -1,0 +1,24 @@
+[package]
+name = "jtd-codegen"
+version = "0.2.0"
+edition = "2021"
+description = "JTD (RFC 8927) schema compiler and code generator for JavaScript ESM and Rust"
+license = "MIT"
+repository = "https://github.com/simbo1905/jtd-wasm"
+homepage = "https://github.com/simbo1905/jtd-wasm"
+documentation = "https://docs.rs/jtd-codegen"
+keywords = ["jtd", "json", "schema", "codegen", "validator"]
+categories = ["command-line-utilities", "development-tools"]
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "1"
+
+[dev-dependencies]
+mlua = { version = "0.9", features = ["lua51", "vendored"] }
+pretty_assertions = "1"
+tempfile = "3"
+
+[target.'cfg(not(windows))'.dev-dependencies]
+quickjs-rs = "0.5.2"

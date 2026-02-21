@@ -1,0 +1,20 @@
+[package]
+name = "jtd-wasm-validator"
+version = "0.2.0"
+edition = "2021"
+description = "Example: JTD schema compiled to Rust, built as WASM for browser JSON validation"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+wasm-bindgen = "0.2"
+serde_json = "1"
+js-sys = "0.3"
+
+[build-dependencies]
+jtd-codegen = { path = "../jtd-codegen" }
+serde_json = "1"
+
+[dev-dependencies]
+wasm-bindgen-test = "0.3"

@@ -1,0 +1,4 @@
+[workspace]
+members = ["jtd-codegen", "jtd-wasm-validator"]
+exclude = ["examples/*/wasm"]
+resolver = "2"

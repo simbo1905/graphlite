@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JTD Validator Demo - jtd-wasm</title>
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/preact@10.19.3/dist/preact.min.js"></script>
+  <script src="https://unpkg.com/preact@10.19.3/hooks/dist/hooks.umd.js"></script>
+  <script src="https://unpkg.com/htm@3.1.1/dist/htm.umd.js"></script>
+  
+  <style>
+    .code-font { font-family: 'Menlo', 'Monaco', 'Courier New', monospace; }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+  <div id="root"></div>
+
+  <script type="module">
+    const { h, render } = preact;
+    const { useState, useEffect } = preactHooks;
+    const html = htm.bind(h);
+    const $ = html;
+
+    // Example configurations
+    const examples = [
+      {
+        id: '01_simple_user',
+        name: 'Simple User',
+        testCases: [
+          { name: 'Valid User', json: '{"name": "Alice", "age": 30, "email": "alice@example.com"}' },
+          { name: 'With Phone', json: '{"name": "Bob", "age": 25, "email": "bob@test.com", "phone": "+1-555-1234"}' },
+          { name: 'Missing Required', json: '{"name": "Charlie"}' },
+          { name: 'Wrong Type', json: '{"name": "Dave", "age": "twenty", "email": "dave@example.com"}' },
+          { name: 'Unknown Property', json: '{"name": "Eve", "age": 30, "email": "eve@example.com", "extra": "field"}' }
+        ]
+      },
+      {
+        id: '02_complex_event',
+        name: 'Complex Event',
+        testCases: [
+          { name: 'Valid Person Event', json: '{"id": "evt-123", "created_at": "2025-02-08T14:30:00Z", "status": "active", "tags": ["important"], "metadata": {"source": "web"}, "nested": {"level": 5, "details": {"type": "person", "firstName": "John", "lastName": "Doe"}}}' },
+          { name: 'Valid Company Event', json: '{"id": "evt-456", "created_at": "2025-02-08T10:00:00+05:00", "status": "pending", "nested": {"level": 1, "details": {"type": "company", "legalName": "Acme Corp", "taxId": "123456789"}}}' },
+          { name: 'Invalid Enum', json: '{"id": "evt-789", "created_at": "2025-02-08T14:30:00Z", "status": "unknown"}' },
+          { name: 'Bad Timestamp', json: '{"id": "evt-000", "created_at": "not-a-date", "status": "active"}' },
+          { name: 'Invalid Discriminator', json: '{"id": "evt-001", "created_at": "2025-02-08T14:30:00Z", "status": "active", "nested": {"level": 1, "details": {"type": "alien"}}}' }
+        ]
+      }
+    ];
+
+    const App = () => {
+      const [mode, setMode] = useState('js'); // 'js' or 'wasm'
+      const [selectedExample, setSelectedExample] = useState('01_simple_user');
+      const [input, setInput] = useState('');
+      const [result, setResult] = useState(null);
+      const [error, setError] = useState(null);
+      const [schema, setSchema] = useState(null);
+      const [validator, setValidator] = useState(null);
+      const [loading, setLoading] = useState(true);
+
+      const currentExample = examples.find(ex => ex.id === selectedExample);
+
+      // Load schema and validator when mode or example changes
+      useEffect(() => {
+        const loadExample = async () => {
+          setLoading(true);
+          setError(null);
+          setResult(null);
+          setInput('');
+          
+          try {
+            // Load schema
+            const schemaRes = await fetch(`${selectedExample}/schema.json`);
+            if (!schemaRes.ok) throw new Error(`Failed to load schema: ${schemaRes.statusText}`);
+            const schemaData = await schemaRes.json();
+            setSchema(schemaData);
+
+            if (mode === 'js') {
+              // Load JavaScript validator
+              const validatorModule = await import(`./${selectedExample}/validator.js`);
+              setValidator(() => validatorModule.validate);
+            } else {
+              // Load WASM validator
+              const wasmModule = await import(`./${selectedExample}/pkg/validator_wasm.js`);
+              await wasmModule.default();  // Initialize WASM
+              setValidator(() => (instance) => {
+                const result = wasmModule.validate_wasm(JSON.stringify(instance));
+                return Array.from(result);
+              });
+            }
+          } catch (e) {
+            setError(`Failed to load ${mode.toUpperCase()} validator: ${e.message}`);
+            setSchema(null);
+            setValidator(null);
+          } finally {
+            setLoading(false);
+          }
+        };
+
+        loadExample();
+      }, [selectedExample, mode]);
+
+      const validate = () => {
+        if (!validator) {
+          setError('Validator not loaded');
+          return;
+        }
+
+        try {
+          const parsed = JSON.parse(input);
+          const errors = validator(parsed);
+          setResult(errors);
+          setError(null);
+        } catch (e) {
+          setError('Invalid JSON: ' + e.message);
+          setResult(null);
+        }
+      };
+
+      const loadTestCase = (testJson) => {
+        setInput(testJson);
+        setResult(null);
+        setError(null);
+      };
+
+      return $`
+        <div class="max-w-7xl mx-auto p-6">
+          <header class="mb-8">
+            <h1 class="text-4xl font-bold text-gray-900 mb-2">JTD Validator Demo</h1>
+            <p class="text-gray-600 mb-1">RFC 8927 JSON Type Definition compiled to validators via the Rust CLI</p>
+            <p class="text-gray-600 mb-6">Source & tooling: <a class="text-blue-600 hover:underline" href="https://github.com/simbo1905/jtd-wasm" target="_blank" rel="noreferrer">github.com/simbo1905/jtd-wasm</a></p>
+            
+            <!-- Mode Selector -->
+            <div class="flex gap-4 mb-6">
+              <button
+                class="${mode === 'js' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 border border-gray-300'} px-8 py-4 rounded-xl font-semibold text-lg shadow-lg transition-all hover:scale-105"
+                onClick=${() => setMode('js')}
+              >
+                <div class="text-2xl mb-1">⚡</div>
+                JavaScript (ESM)
+                <div class="text-xs opacity-75 mt-1">Pure JS, instant load</div>
+              </button>
+              <button
+                class="${mode === 'wasm' ? 'bg-purple-600 text-white' : 'bg-white text-gray-700 border border-gray-300'} px-8 py-4 rounded-xl font-semibold text-lg shadow-lg transition-all hover:scale-105"
+                onClick=${() => setMode('wasm')}
+              >
+                <div class="text-2xl mb-1">🚀</div>
+                WebAssembly
+                <div class="text-xs opacity-75 mt-1">Rust → WASM, native speed</div>
+              </button>
+            </div>
+          </header>
+
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Left Column: Input -->
+            <div class="space-y-6">
+              <div class="bg-white rounded-xl shadow-lg p-6">
+                <label class="block text-sm font-semibold text-gray-700 mb-3">
+                  Select Example
+                </label>
+                <select 
+                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+                  value=${selectedExample}
+                  onChange=${e => setSelectedExample(e.target.value)}
+                  disabled=${loading}
+                >
+                  ${examples.map(ex => $`<option key=${ex.id} value=${ex.id}>${ex.name}</option>`)}
+                </select>
+              </div>
+
+              ${loading && $`
+                <div class="bg-blue-50 border border-blue-200 rounded-xl p-6">
+                  <p class="text-blue-700">Loading ${mode.toUpperCase()} validator...</p>
+                </div>
+              `}
+
+              ${!loading && validator && $`
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                  <label class="block text-sm font-semibold text-gray-700 mb-3">
+                    JSON Input
+                  </label>
+                  <textarea
+                    class="w-full h-64 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent code-font text-sm resize-y"
+                    placeholder="Paste your JSON here..."
+                    value=${input}
+                    onInput=${e => setInput(e.target.value)}
+                  />
+                  <button
+                    class="mt-4 w-full ${mode === 'js' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-purple-600 hover:bg-purple-700'} text-white font-semibold py-3 px-6 rounded-lg transition-colors"
+                    onClick=${validate}
+                  >
+                    Validate with ${mode.toUpperCase()}
+                  </button>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                  <h3 class="text-sm font-semibold text-gray-700 mb-3">Quick Examples</h3>
+                  <div class="space-y-2">
+                    ${currentExample.testCases.map(tc => $`
+                      <button
+                        key=${tc.name}
+                        class="w-full text-left px-4 py-2 text-sm bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors code-font"
+                        onClick=${() => loadTestCase(tc.json)}
+                      >
+                        <span class="font-medium text-gray-900">${tc.name}</span>
+                        <span class="text-gray-500 ml-2">→</span>
+                      </button>
+                    `)}
+                  </div>
+                </div>
+              `}
+            </div>
+
+            <!-- Right Column: Results & Schema -->
+            <div class="space-y-6">
+              ${schema && $`
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                  <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-lg font-semibold text-gray-900">Schema Definition</h2>
+                    <span class="text-xs px-3 py-1 rounded-full ${mode === 'js' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'}">
+                      Mode: ${mode.toUpperCase()}
+                    </span>
+                  </div>
+                  <pre class="bg-gray-50 rounded-lg p-4 overflow-x-auto">
+                    <code class="code-font text-sm text-gray-800">
+${JSON.stringify(schema, null, 2)}
+                    </code>
+                  </pre>
+                </div>
+              `}
+
+              ${error && $`
+                <div class="bg-red-50 border border-red-200 rounded-xl p-6">
+                  <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
+                      <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                      </svg>
+                    </div>
+                    <h3 class="text-lg font-semibold text-red-900">Error</h3>
+                  </div>
+                  <p class="mt-3 text-red-700 code-font text-sm">${error}</p>
+                </div>
+              `}
+
+              ${result && result.length === 0 && $`
+                <div class="bg-green-50 border border-green-200 rounded-xl p-6">
+                  <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                      <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                      </svg>
+                    </div>
+                    <h3 class="text-lg font-semibold text-green-900">Validation Passed</h3>
+                  </div>
+                  <p class="mt-3 text-green-700">The JSON is valid according to the ${currentExample.name} schema.</p>
+                  <p class="mt-2 text-green-600 text-sm">Validated using ${mode === 'js' ? 'JavaScript ESM' : 'WebAssembly'}</p>
+                </div>
+              `}
+
+              ${result && result.length > 0 && $`
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                  <div class="flex items-center gap-3 mb-4">
+                    <div class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
+                      <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                      </svg>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900">Validation Errors (${result.length})</h3>
+                  </div>
+                  <div class="space-y-3">
+                    ${result.map((err, i) => $`
+                      <div key=${i} class="bg-red-50 border border-red-200 rounded-lg p-4">
+                        <div class="flex gap-4">
+                          <span class="text-xs font-medium bg-red-200 text-red-800 px-2 py-1 rounded">#${i + 1}</span>
+                          <div class="flex-1">
+                            <p class="text-sm font-medium text-gray-900">Instance Path: <span class="code-font text-red-700">${err.instancePath || '/'}</span></p>
+                            <p class="text-sm font-medium text-gray-900 mt-1">Schema Path: <span class="code-font text-red-700">${err.schemaPath}</span></p>
+                          </div>
+                        </div>
+                      </div>
+                    `)}
+                  </div>
+                </div>
+              `}
+            </div>
+          </div>
+
+          <footer class="mt-12 text-center text-gray-500 text-sm">
+            <p>Generated by <a href="https://github.com/simbo1905/jtd-wasm" class="text-blue-600 hover:underline">jtd-wasm</a> — AOT JSON Type Definition Code Generator</p>
+            <p class="mt-1">JavaScript: Instant load • WebAssembly: Native performance</p>
+          </footer>
+        </div>
+      `;
+    };
+
+    render($`<${App} />`, document.getElementById('root'));
+  </script>
+</body>
+</html>

@@ -1,0 +1,261 @@
+name: Release
+
+on:
+  schedule:
+    # Daily at 03:15 UTC
+    - cron: '15 3 * * *'
+  workflow_dispatch:
+  push:
+    tags:
+      - 'release/[0-9]+.[0-9]+.[0-9]+'
+      - 'releases/*'
+
+permissions:
+  contents: write
+
+env:
+  BIN_NAME: jtd-codegen
+
+jobs:
+  meta:
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.meta.outputs.tag }}
+      version: ${{ steps.meta.outputs.version }}
+      prerelease: ${{ steps.meta.outputs.prerelease }}
+    steps:
+      - id: meta
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
+            TAG="${GITHUB_REF_NAME}"
+            # Handle both release/x.y.z and releases/x.y.z
+            if [[ "$TAG" =~ ^release/[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+              VERSION="${TAG#release/}"
+              PRERELEASE=false
+            elif [[ "$TAG" =~ ^releases/[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+              VERSION="${TAG#releases/}"
+              PRERELEASE=false
+            else
+              echo "Unexpected tag format: $TAG" >&2
+              exit 1
+            fi
+          else
+            DATE="$(date -u +%Y%m%d)"
+            TAG="nightly-${DATE}"
+            VERSION="$TAG"
+            PRERELEASE=true
+          fi
+
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "prerelease=$PRERELEASE" >> "$GITHUB_OUTPUT"
+
+  build_macos:
+    name: Build macOS
+    runs-on: macos-latest
+    needs: meta
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Build
+        shell: bash
+        run: |
+          set -euo pipefail
+          cargo build -p jtd-codegen --bin jtd-codegen --release --locked
+          mkdir -p dist
+          cp "target/release/jtd-codegen" "dist/jtd-codegen"
+
+      - name: Package
+        shell: bash
+        run: |
+          set -euo pipefail
+          target="aarch64-apple-darwin"
+          out="${{ env.BIN_NAME }}_${{ needs.meta.outputs.version }}_${target}.tar.gz"
+          tar -C dist -czf "$out" "${{ env.BIN_NAME }}"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos
+          path: '*.tar.gz'
+          if-no-files-found: error
+
+  build_windows:
+    name: Build Windows
+    runs-on: windows-latest
+    needs: meta
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Build
+        shell: bash
+        run: |
+          set -euo pipefail
+          cargo build -p jtd-codegen --bin jtd-codegen --release --locked
+          mkdir -p dist
+          cp "target/release/jtd-codegen.exe" "dist/jtd-codegen.exe"
+
+      - name: Package
+        shell: pwsh
+        run: |
+          $target = 'x86_64-pc-windows-msvc'
+          $out = "${{ env.BIN_NAME }}_${{ needs.meta.outputs.version }}_${target}.zip"
+          Compress-Archive -Path dist\jtd-codegen.exe -DestinationPath $out -Force
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows
+          path: '*.zip'
+          if-no-files-found: error
+
+  build_linux_debian_trixie:
+    name: Build Linux (Debian Trixie)
+    runs-on: ubuntu-latest
+    needs: meta
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build in Debian Trixie container
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run --rm \
+            -v "${GITHUB_WORKSPACE}:/work" \
+            -w /work \
+            debian:trixie-slim \
+            bash -lc '
+              set -euo pipefail
+              apt-get update
+              apt-get install -y --no-install-recommends \
+                ca-certificates curl build-essential pkg-config git python3
+              curl -fsSL https://sh.rustup.rs | sh -s -- -y --profile minimal
+              . "$HOME/.cargo/env"
+              cargo build -p jtd-codegen --bin jtd-codegen --release --locked
+              mkdir -p dist
+              cp "target/release/jtd-codegen" "dist/jtd-codegen"
+            '
+
+      - name: Package
+        shell: bash
+        run: |
+          set -euo pipefail
+          target="x86_64-unknown-linux-gnu"
+          out="${{ env.BIN_NAME }}_${{ needs.meta.outputs.version }}_${target}.tar.gz"
+          tar -C dist -czf "$out" "${{ env.BIN_NAME }}"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux
+          path: '*.tar.gz'
+          if-no-files-found: error
+
+  release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs:
+      - meta
+      - build_macos
+      - build_windows
+      - build_linux_debian_trixie
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist-artifacts
+
+      - name: Flatten artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          find dist-artifacts -type f \( -name '*.tar.gz' -o -name '*.zip' \) -exec cp {} dist/ \;
+          ls -la dist
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.meta.outputs.version }}
+          TAG: ${{ needs.meta.outputs.tag }}
+          PRERELEASE: ${{ needs.meta.outputs.prerelease }}
+          REPO: ${{ github.repository }}
+          BIN_NAME: ${{ env.BIN_NAME }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          
+          # 1. Generate Release Notes File
+          NOTES_FILE="release_notes.md"
+          
+          if [[ "$PRERELEASE" == "true" ]]; then
+            echo "## Nightly Build" > "$NOTES_FILE"
+            echo "" >> "$NOTES_FILE"
+            echo "Automated nightly build." >> "$NOTES_FILE"
+          else
+            echo "## Release $VERSION" > "$NOTES_FILE"
+            echo "" >> "$NOTES_FILE"
+            echo "### Changes" >> "$NOTES_FILE"
+            echo '```' >> "$NOTES_FILE"
+            
+            LAST_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+            if [[ -n "$LAST_TAG" ]]; then
+              git log "${LAST_TAG}..HEAD" --oneline --no-decorate >> "$NOTES_FILE" || echo "No changes" >> "$NOTES_FILE"
+            else
+              git log --oneline --no-decorate -20 >> "$NOTES_FILE" || echo "Initial release" >> "$NOTES_FILE"
+            fi
+            
+            echo '```' >> "$NOTES_FILE"
+          fi
+          
+          echo "" >> "$NOTES_FILE"
+          echo "### Binaries" >> "$NOTES_FILE"
+          echo "" >> "$NOTES_FILE"
+          echo "- \`${BIN_NAME}_${VERSION}_aarch64-apple-darwin.tar.gz\` - macOS (Apple Silicon)" >> "$NOTES_FILE"
+          echo "- \`${BIN_NAME}_${VERSION}_x86_64-pc-windows-msvc.zip\` - Windows" >> "$NOTES_FILE"
+          echo "- \`${BIN_NAME}_${VERSION}_x86_64-unknown-linux-gnu.tar.gz\` - Linux (Debian Trixie)" >> "$NOTES_FILE"
+          
+          echo "" >> "$NOTES_FILE"
+          echo "### Installation" >> "$NOTES_FILE"
+          echo "" >> "$NOTES_FILE"
+          echo "With [mise](https://mise.jdx.dev/) or [asdf](https://asdf-vm.com/):" >> "$NOTES_FILE"
+          echo '```bash' >> "$NOTES_FILE"
+          echo "mise use jtd-codegen@${VERSION}" >> "$NOTES_FILE"
+          echo "# or" >> "$NOTES_FILE"
+          echo "asdf install jtd-codegen ${VERSION}" >> "$NOTES_FILE"
+          echo '```' >> "$NOTES_FILE"
+          
+          echo "" >> "$NOTES_FILE"
+          echo "### Manual Download" >> "$NOTES_FILE"
+          echo "" >> "$NOTES_FILE"
+          echo '```bash' >> "$NOTES_FILE"
+          echo "# macOS" >> "$NOTES_FILE"
+          echo "curl -L -o jtd-codegen.tar.gz \"https://github.com/${REPO}/releases/download/${TAG}/${BIN_NAME}_${VERSION}_aarch64-apple-darwin.tar.gz\"" >> "$NOTES_FILE"
+          echo "tar -xzf jtd-codegen.tar.gz" >> "$NOTES_FILE"
+          echo "" >> "$NOTES_FILE"
+          echo "# Linux" >> "$NOTES_FILE"
+          echo "curl -L -o jtd-codegen.tar.gz \"https://github.com/${REPO}/releases/download/${TAG}/${BIN_NAME}_${VERSION}_x86_64-unknown-linux-gnu.tar.gz\"" >> "$NOTES_FILE"
+          echo "tar -xzf jtd-codegen.tar.gz" >> "$NOTES_FILE"
+          echo "" >> "$NOTES_FILE"
+          echo "# Windows (PowerShell)" >> "$NOTES_FILE"
+          echo "Invoke-WebRequest -Uri \"https://github.com/${REPO}/releases/download/${TAG}/${BIN_NAME}_${VERSION}_x86_64-pc-windows-msvc.zip\" -OutFile jtd-codegen.zip" >> "$NOTES_FILE"
+          echo "Expand-Archive -Path jtd-codegen.zip -DestinationPath ." >> "$NOTES_FILE"
+          echo '```' >> "$NOTES_FILE"
+
+          # 2. Create Release
+          FLAGS=""
+          if [[ "$PRERELEASE" == "true" ]]; then
+            FLAGS="--prerelease"
+          fi
+          
+          gh release create "$TAG" \
+            $FLAGS \
+            --title "$TAG" \
+            --notes-file "$NOTES_FILE" \
+            dist/*.tar.gz dist/*.zip

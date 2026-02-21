@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>JTD WASM Validator</title>
+</head>
+<body>
+  <h1>JTD WASM Validator</h1>
+  <p>Schema validates: name (string, required), age (uint8, required), tags (string[], required), email (string, optional).</p>
+
+  <textarea id="input" rows="12" cols="60">{
+  "name": "Alice",
+  "age": 300,
+  "tags": ["a", 42],
+  "extra": true
+}</textarea>
+  <br>
+  <button id="btn">Validate</button>
+  <pre id="output"></pre>
+
+  <script type="module">
+    import init, { validate } from './pkg/jtd_wasm_validator.js';
+
+    await init();
+
+    document.getElementById('btn').addEventListener('click', () => {
+      const json = document.getElementById('input').value;
+      try {
+        const errors = validate(json);
+        document.getElementById('output').textContent =
+          errors.length === 0
+            ? 'Valid!'
+            : JSON.stringify(errors, null, 2);
+      } catch (e) {
+        document.getElementById('output').textContent = 'Error: ' + e.message;
+      }
+    });
+
+    // Auto-validate on load for headless testing
+    const json = document.getElementById('input').value;
+    try {
+      const errors = validate(json);
+      window.__jtd_result = JSON.stringify(errors);
+      document.getElementById('output').textContent =
+        errors.length === 0
+          ? 'Valid!'
+          : JSON.stringify(errors, null, 2);
+    } catch (e) {
+      window.__jtd_result = 'Error: ' + e.message;
+    }
+  </script>
+</body>
+</html>
