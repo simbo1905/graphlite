@@ -98,6 +98,7 @@ Lua 5.4 has no built-in FFI; this demo uses a tiny C module:
 cargo build --release -p graphlite-ffi
 
 cd examples/lua/bindings_c
+./setup.sh   # checks Lua 5.4 + luarocks, installs dkjson
 make
 make run
 ```

@@ -4,11 +4,18 @@
 --
 -- Lua 5.4 has no built-in FFI; this demo uses a tiny C module
 -- (graphlite_lua.c) that calls the GraphLite FFI shared library.
+-- JSON results from the engine are decoded with dkjson (install via
+-- luarocks: luarocks install dkjson).
 --
 -- Run:  lua5.4 basic_usage.lua
 --
 
-local gl = require("graphlite_lua")
+local gl   = require("graphlite_lua")
+local json = require("dkjson")
+
+---------------------------------------------------------------------------
+-- Helpers
+---------------------------------------------------------------------------
 
 -- Portable temp-dir helper (os.tmpname gives a file; we need a directory).
 local function make_temp_dir()
@@ -19,12 +26,12 @@ local function make_temp_dir()
     return dir
 end
 
--- Remove a directory tree (best-effort, non-portable but fine for demos).
+-- Remove a directory tree (best-effort).
 local function remove_tree(dir)
     os.execute("rm -rf " .. dir .. " 2>/dev/null")
 end
 
--- Format a value for display: show round floats as integers.
+-- Format a value for display: show round floats without decimals.
 local function fmtval(v)
     if type(v) == "number" then
         if v == math.floor(v) then return string.format("%d", v) end
@@ -33,7 +40,7 @@ local function fmtval(v)
     return tostring(v)
 end
 
--- Pretty-print helper for result rows.
+-- Pretty-print result rows.
 local function print_rows(rows, fmt)
     if not rows then return end
     for _, row in ipairs(rows) do
@@ -41,7 +48,47 @@ local function print_rows(rows, fmt)
     end
 end
 
--- ===================================================================
+--- Unwrap a single typed-value wrapper {"String":"Alice"} -> "Alice".
+local function unwrap_value(v)
+    if type(v) ~= "table" then return v end
+    for _, actual in pairs(v) do
+        return actual
+    end
+    return v
+end
+
+--- Parse the raw JSON string from db:query() and return a table with
+--- flat rows:  { variables = {...}, rows = { {col=val,...}, ...}, row_count = N }
+local function parse_result(raw_json)
+    local obj = json.decode(raw_json)
+    if not obj then return { rows = {}, row_count = 0 } end
+
+    local result = {
+        variables = obj.variables or {},
+        row_count = obj.rows_affected or 0,
+        rows      = {},
+    }
+    if obj.rows then
+        for i, row in ipairs(obj.rows) do
+            local flat = {}
+            if row.values then
+                for k, v in pairs(row.values) do
+                    flat[k] = unwrap_value(v)
+                end
+            end
+            result.rows[i] = flat
+        end
+        if result.row_count == 0 then
+            result.row_count = #result.rows
+        end
+    end
+    return result
+end
+
+---------------------------------------------------------------------------
+-- Main
+---------------------------------------------------------------------------
+
 local function main()
     print("=== GraphLite Lua 5.4 Bindings Example ===\n")
 
@@ -77,9 +124,10 @@ local function main()
 
         -- 5. Query all persons
         print("5. Querying: All persons (name, age)")
-        local result = db:query(session,
+        local raw   = db:query(session,
             "MATCH (p:Person) RETURN p.name as name, p.age as age")
-        print("   Found " .. (result.row_count or #result.rows) .. " persons:")
+        local result = parse_result(raw)
+        print("   Found " .. result.row_count .. " persons:")
         print_rows(result.rows, function(r)
             return "   - " .. fmtval(r.name) .. ": " .. fmtval(r.age) .. " years old"
         end)
@@ -87,11 +135,11 @@ local function main()
 
         -- 6. Filter with WHERE + ORDER BY
         print("6. Filtering: Persons older than 25 (ascending by age)")
-        result = db:query(session,
+        raw    = db:query(session,
             "MATCH (p:Person) WHERE p.age > 25 " ..
             "RETURN p.name as name, p.age as age ORDER BY p.age ASC")
-        print("   Found " .. (result.row_count or #result.rows) ..
-              " persons over 25:")
+        result = parse_result(raw)
+        print("   Found " .. result.row_count .. " persons over 25:")
         print_rows(result.rows, function(r)
             return "   - " .. fmtval(r.name) .. ": " .. fmtval(r.age) .. " years old"
         end)
@@ -99,8 +147,9 @@ local function main()
 
         -- 7. Aggregation
         print("7. Aggregation query...")
-        result = db:query(session,
+        raw    = db:query(session,
             "MATCH (p:Person) RETURN count(p) as total, avg(p.age) as avg_age")
+        result = parse_result(raw)
         if result.rows and #result.rows > 0 then
             local row = result.rows[1]
             print("   Total persons: " .. fmtval(row.total))

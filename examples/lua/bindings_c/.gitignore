@@ -1,0 +1,9 @@
+# Built C module
+graphlite_lua.so
+graphlite_lua.dylib
+graphlite_lua.dll
+
+# dkjson installed via luarocks (--tree or copied locally)
+dkjson.lua
+lua_modules/
+luarocks/

@@ -4,15 +4,20 @@ Lua 5.4 has no built-in FFI; this demo uses a **tiny C module**
 (`graphlite_lua.c`) that calls the same GraphLite FFI shared library used by
 the Python and Java bindings.
 
-This is *not* a full SDK or binding generator — just enough to prove that
+JSON results from the engine are decoded on the Lua side with
+[dkjson](http://dkolf.de/src/dkjson-lua.fsl/home), installed via
+**luarocks**.
+
+This is *not* a full SDK or binding generator -- just enough to prove that
 Lua 5.4 can embed/use GraphLite via a custom C module.
 
 ## Files
 
 | File | Description |
 |------|-------------|
-| `graphlite_lua.c` | Minimal C99 Lua module (~300 lines). Links against the Rust FFI shared library and exposes a small Lua API. Includes a tiny JSON-to-Lua-table parser for query results. |
-| `basic_usage.lua` | Demo script mirroring the Java `BasicUsage.java`. Opens a database, creates a schema/graph, inserts persons, queries, and prints results. |
+| `graphlite_lua.c` | Minimal C99 Lua module (~240 lines). Links against the Rust FFI shared library. Returns raw JSON strings from query(); no JSON parsing in C. |
+| `basic_usage.lua` | Demo script mirroring the Java `BasicUsage.java`. Uses dkjson for JSON decoding and does row-flattening in Lua. |
+| `setup.sh` | Checks Lua >= 5.4 and luarocks are installed, then installs dkjson. |
 | `Makefile` | Builds the shared module on Linux and macOS. |
 
 ## Prerequisites
@@ -22,9 +27,12 @@ Lua 5.4 can embed/use GraphLite via a custom C module.
   - Debian/Ubuntu: `sudo apt install lua5.4 liblua5.4-dev`
   - macOS (Homebrew): `brew install lua@5.4`
   - Fedora: `sudo dnf install lua-devel`
+- **luarocks** (Lua package manager)
+  - Debian/Ubuntu: `sudo apt install luarocks`
+  - macOS: `brew install luarocks`
 - **GCC** or **Clang** (C99)
 
-## Build Steps
+## Quick Start
 
 ### 1. Build the Rust FFI shared library
 
@@ -34,19 +42,41 @@ From the repository root:
 cargo build --release -p graphlite-ffi
 ```
 
-This produces `target/release/libgraphlite_ffi.so` (Linux),
-`target/release/libgraphlite_ffi.dylib` (macOS), or
-`target/release/graphlite_ffi.dll` (Windows).
-
-### 2. Build the Lua C module
+### 2. Run the setup script
 
 From this directory (`examples/lua/bindings_c/`):
+
+```bash
+./setup.sh
+```
+
+This verifies Lua >= 5.4 and luarocks are present, then installs **dkjson**.
+
+### 3. Build the Lua C module
 
 ```bash
 make
 ```
 
+### 4. Run the demo
+
+```bash
+make run
+```
+
 Or manually:
+
+**Linux:**
+```bash
+LD_LIBRARY_PATH=../../../target/release lua5.4 basic_usage.lua
+```
+
+**macOS:**
+```bash
+DYLD_LIBRARY_PATH=../../../target/release lua5.4 basic_usage.lua
+```
+
+## Manual Build (without Make)
 
 **Linux:**
 ```bash
@@ -63,27 +93,6 @@ gcc -std=c99 -shared -fPIC -undefined dynamic_lookup \
     -L../../../target/release -lgraphlite_ffi
 ```
 
-### 3. Run the demo
-
-Set the shared library search path so the Rust FFI library can be found at
-runtime, then run:
-
-**Linux:**
-```bash
-LD_LIBRARY_PATH=../../../target/release lua5.4 basic_usage.lua
-```
-
-**macOS:**
-```bash
-DYLD_LIBRARY_PATH=../../../target/release lua5.4 basic_usage.lua
-```
-
-Or use the Makefile shortcut:
-
-```bash
-make run
-```
-
 ## C Module API
 
 The module exposes just enough for the demo:
@@ -94,13 +103,18 @@ The module exposes just enough for the demo:
 | `gl.open(path)` | `graphlite_open` | db userdata |
 | `db:create_session(user)` | `graphlite_create_session` | session ID string |
 | `db:execute(sid, query)` | `graphlite_query` (result discarded) | nil |
-| `db:query(sid, query)` | `graphlite_query` → JSON → Lua table | `{variables={...}, rows={...}, row_count=N}` |
+| `db:query(sid, query)` | `graphlite_query` | raw JSON string |
 | `db:close_session(sid)` | `graphlite_close_session` | nil |
 | `db:close()` | `graphlite_close` | nil |
 
 All FFI-allocated strings are freed with `graphlite_free_string`.
 The db userdata has a `__gc` metamethod that calls `graphlite_close`
 automatically if the user forgets `db:close()`.
+
+**JSON decoding** is done entirely in Lua using dkjson. The `basic_usage.lua`
+script includes a small `parse_result()` helper that decodes the JSON and
+flattens the engine's typed-value wrappers (e.g. `{"String":"Alice"}`)
+into plain Lua values.
 
 ### Error handling
 
@@ -139,7 +153,7 @@ Using temporary database: /tmp/lua_XXXXXX_graphlite
 
 7. Aggregation query...
    Total persons: 3
-   Average age: 30.0
+   Average age: 30
 
 8. Closing session...
    [OK] Session closed
@@ -152,7 +166,9 @@ Using temporary database: /tmp/lua_XXXXXX_graphlite
 
 ## Smoke Checklist
 
+- [ ] `./setup.sh` passes all checks
 - [ ] `require("graphlite_lua")` loads without error
+- [ ] `require("dkjson")` loads without error
 - [ ] `gl.version()` returns a version string
 - [ ] Step 5 query returns 3 rows
 - [ ] Step 6 query returns 2 rows (age > 25)
