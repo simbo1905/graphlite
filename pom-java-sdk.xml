@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Optional aggregator: build SDK + examples with: mvn -f pom-java-sdk.xml install -->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+         http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>io.graphlite</groupId>
+    <artifactId>graphlite-java-sdk-aggregator</artifactId>
+    <version>0.1.0</version>
+    <packaging>pom</packaging>
+    <name>GraphLite Java SDK (aggregator)</name>
+
+    <modules>
+        <module>java-sdk-panama</module>
+        <module>examples/java/sdk-panama</module>
+    </modules>
+</project>
