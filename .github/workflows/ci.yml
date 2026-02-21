@@ -8,6 +8,8 @@ on:
 env:
   CARGO_TERM_COLOR: always
   RUST_BACKTRACE: 1
+  RUSTFLAGS: -Dwarnings
+  RUSTDOCFLAGS: -Dwarnings
 
 jobs:
   lint:
@@ -50,10 +52,8 @@ jobs:
         run: cargo fmt --all -- --check
 
       - name: Run clippy
-        # Using clippy_all.sh script for consistent linting across environments
-        # Note: Currently runs without --strict mode due to ~26 remaining warnings
-        # TODO: Fix remaining warnings and add --strict flag
-        run: ./scripts/clippy_all.sh --all
+        # Strict linting: warnings are treated as errors.
+        run: ./scripts/clippy_all.sh --all --strict
 
   build-and-test:
     name: Build and Test

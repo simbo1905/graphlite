@@ -13,6 +13,18 @@
 
 set -e
 
+# Enforce warning-free builds and docs for local CI validation.
+if [[ -n "${RUSTFLAGS:-}" ]]; then
+    export RUSTFLAGS="${RUSTFLAGS} -Dwarnings"
+else
+    export RUSTFLAGS="-Dwarnings"
+fi
+if [[ -n "${RUSTDOCFLAGS:-}" ]]; then
+    export RUSTDOCFLAGS="${RUSTDOCFLAGS} -Dwarnings"
+else
+    export RUSTDOCFLAGS="-Dwarnings"
+fi
+
 # Color codes
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -94,9 +106,8 @@ fi
 # 2. Check code formatting
 run_check "Code formatting check" "cargo fmt --all -- --check" || true
 
-# 3. Run clippy
-# Note: Allowing warnings to match CI workflow (see .github/workflows/ci.yml for TODO)
-run_check "Clippy linting" "cargo clippy --all-targets --all-features -- -A clippy::not_unsafe_ptr_arg_deref -A clippy::approx_constant" || true
+# 3. Run clippy (strict mode, warnings are errors)
+run_check "Clippy linting" "./scripts/clippy_all.sh --all --strict" || true
 
 # Quick mode stops here
 if [ "$TEST_MODE" = "quick" ]; then
