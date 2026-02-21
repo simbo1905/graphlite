@@ -55,3 +55,7 @@ my_db/
 # GitHub Actions local testing
 .secrets
 .env
+
+# Lua / LuaRocks (dkjson from luarocks - do not commit)
+lua_modules/
+dkjson/

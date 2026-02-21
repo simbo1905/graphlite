@@ -33,10 +33,11 @@ libgraphlite_ffi.so / .dylib / .dll (Rust)
    brew install luajit
    ```
 
-3. **Optional: cjson** (for faster JSON parsing; fallback decoder included):
+3. **dkjson** (required for JSON parsing; engine returns JSON as bytes):
    ```bash
-   luarocks install lua-cjson
+   luarocks install dkjson
    ```
+   Or run `./setup.sh` from examples/lua/sdk/.
 
 ## API
 
@@ -93,7 +94,7 @@ lua-sdk/
 │   ├── session.lua         -- session:query(), session:execute(), session:close()
 │   ├── errors.lua          -- Typed error tables
 │   ├── result.lua          -- QueryResult with flattened rows
-│   └── json_util.lua       -- JSON parsing (cjson or fallback)
+│   └── json_util.lua       -- JSON parsing (dkjson, no embedded parser)
 ├── tests/
 │   └── smoke_test.lua      -- Minimal smoke test
 └── README.md

@@ -24,6 +24,20 @@ libgraphlite_ffi.so (Rust)
 
 ## Setup
 
+### Run setup script first
+
+```bash
+cd examples/lua/sdk
+./setup.sh
+```
+
+The setup script checks:
+- Lua 5.4+ or LuaJIT is installed
+- luarocks is installed
+- Installs dkjson via `luarocks install dkjson --local`
+
+(dkjson is in .gitignore; the engine returns JSON as bytes, parsed with dkjson.)
+
 ### Prerequisites
 
 1. **Build the GraphLite FFI library**:
@@ -32,13 +46,13 @@ libgraphlite_ffi.so (Rust)
    cargo build --release -p graphlite-ffi
    ```
 
-2. **LuaJIT** (2.0 or 2.1):
+2. **Lua 5.4+ or LuaJIT** and **luarocks**:
    ```bash
    # Ubuntu/Debian
-   sudo apt install luajit
+   sudo apt install lua5.4 luarocks   # or luajit
 
    # macOS
-   brew install luajit
+   brew install lua luarocks   # or luajit
    ```
 
 3. **LuaJIT SDK Dependency**
@@ -72,7 +86,8 @@ A pharmaceutical research example demonstrating:
 **Run:**
 ```bash
 cd examples/lua/sdk
-luajit drug_discovery.lua
+./setup.sh   # first time only
+luajit drug_discovery.lua   # or: lua5.4 drug_discovery.lua
 ```
 
 ### Basic Usage
@@ -81,6 +96,7 @@ Minimal sanity test: open DB, create session, insert nodes, query, close.
 
 **Run:**
 ```bash
+./setup.sh   # first time only
 luajit basic_usage.lua
 ```
 
