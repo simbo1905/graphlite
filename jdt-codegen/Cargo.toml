@@ -1,0 +1,13 @@
+[package]
+name = "jdt-codegen"
+version = "0.1.0"
+edition = "2021"
+description = "JDT (JSON Document Transforms) compiler and transformer (work-in-progress)"
+
+[dependencies]
+serde_json = "1"
+thiserror = "1"
+
+[dev-dependencies]
+pretty_assertions = "1"
+walkdir = "2"

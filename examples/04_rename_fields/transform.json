@@ -1,0 +1,14 @@
+{
+  "@jdt.rename": {
+    "user_id": "id",
+    "user_name": "username",
+    "email_address": "email",
+    "created_date": "createdAt"
+  },
+  "account_settings": {
+    "@jdt.rename": {
+      "notification_enabled": "notifications",
+      "theme_preference": "theme"
+    }
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "users": {
+    "@jdt.replace": {
+      "@jdt.path": "$[?(@.role == 'user')]",
+      "@jdt.value": {
+        "role": "viewer"
+      }
+    }
+  }
+}

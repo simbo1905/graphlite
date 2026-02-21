@@ -1,0 +1,9 @@
+{
+  "name": "my-app",
+  "version": "1.0.0",
+  "description": "A sample application",
+  "config": {
+    "port": 3000,
+    "host": "localhost"
+  }
+}

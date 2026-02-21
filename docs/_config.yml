@@ -1,0 +1,8 @@
+title: JDT WASM - JSON Document Transforms
+description: Rust-based JSON Document Transforms (JDT) implementation with WebAssembly support
+theme: jekyll-theme-minimal
+show_downloads: true
+github:
+  repository_url: https://github.com/simbo1905/jdt-wasm
+  zip_url: https://github.com/simbo1905/jdt-wasm/zipball/main
+  tar_url: https://github.com/simbo1905/jdt-wasm/tarball/main
