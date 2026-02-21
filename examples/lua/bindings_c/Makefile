@@ -23,7 +23,9 @@ LUA_PATH_EXTRA  := $(shell luarocks --lua-version 5.4 path --lr-path  2>/dev/nul
 LUA_CPATH_EXTRA := $(shell luarocks --lua-version 5.4 path --lr-cpath 2>/dev/null)
 
 CC      ?= gcc
-CFLAGS  := -std=c99 -O2 -Wall -Wextra -fPIC $(LUA_CFLAGS)
+CFLAGS  := -std=c99 -O2 -Wall -Wextra -Wpedantic -Werror \
+           -Wno-unused-parameter \
+           -fPIC $(LUA_CFLAGS)
 LDFLAGS := -L$(FFI_LIB_DIR) -lgraphlite_ffi
 
 ifeq ($(UNAME),Darwin)
