@@ -19,6 +19,10 @@ examples/
 │   │   └── drug_discovery.py
 │   └── sdk/           # High-level SDK examples
 │       └── drug_discovery.py
+├── lua/
+│   └── sdk/           # High-level LuaJIT SDK examples
+│       ├── drug_discovery.lua
+│       └── basic_usage.lua
 └── java/
     └── bindings/      # Java bindings examples
         └── BasicUsage.java
@@ -71,6 +75,23 @@ cd examples/python/sdk
 python3 drug_discovery.py
 ```
 
+### LuaJIT Examples
+
+#### High-Level SDK
+Session-centric LuaJIT API (requires LuaJIT 2.0+, **not** PUC Lua 5.4):
+```bash
+cd examples/lua/sdk
+
+# Drug discovery
+LD_LIBRARY_PATH=../../../target/release luajit drug_discovery.lua
+
+# Basic usage
+LD_LIBRARY_PATH=../../../target/release luajit basic_usage.lua
+```
+
+> **Note:** The LuaJIT SDK source lives on the `luajit-sdk` branch.
+> See `examples/lua/sdk/README.md` for setup instructions.
+
 ### Java Examples
 
 First, build and install the Java bindings to your local Maven repository:
@@ -116,6 +137,7 @@ Comprehensive pharmaceutical research example showing:
 - [Rust SDK Examples](./rust/sdk/README.md)
 - [Python Bindings](./python/bindings/README.md)
 - [Python SDK](./python/sdk/README.md)
+- [LuaJIT SDK](./lua/sdk/README.md)
 
 ## Prerequisites
 
@@ -132,6 +154,19 @@ cargo build --release -p graphlite-ffi
 # Install Python bindings
 cd bindings/python
 pip install -e .
+```
+
+### LuaJIT
+```bash
+# Build FFI library
+cargo build --release -p graphlite-ffi
+
+# Install LuaJIT (Ubuntu/Debian)
+sudo apt-get install luajit
+
+# Checkout the SDK (luajit-sdk branch)
+git fetch origin luajit-sdk
+# See examples/lua/sdk/README.md for details
 ```
 
 ### Java
