@@ -1332,7 +1332,7 @@ fn validate_path_constructor(
     }
 
     // PATH elements should follow node-edge-node pattern (optional validation)
-    if path_constructor.elements.len().is_multiple_of(2) && path_constructor.elements.len() > 2 {
+    if path_constructor.elements.len() % 2 == 0 && path_constructor.elements.len() > 2 {
         // Even number of elements > 2 might indicate incomplete path
         // This is a warning rather than an error since PATH[node, edge] might be valid
         // in some contexts
