@@ -19,6 +19,10 @@ examples/
 │   │   └── drug_discovery.py
 │   └── sdk/           # High-level SDK examples
 │       └── drug_discovery.py
+├── lua/
+│   └── sdk/           # High-level LuaJIT SDK examples
+│       ├── basic_usage.lua
+│       └── drug_discovery.lua
 └── java/
     └── bindings/      # Java bindings examples
         └── BasicUsage.java
@@ -85,6 +89,20 @@ cd examples/java/bindings
 mvn clean compile exec:java
 ```
 
+### LuaJIT Examples
+
+#### High-Level LuaJIT SDK
+Session-centric API:
+```bash
+cd examples/lua/sdk
+
+# Basic usage / smoke test
+luajit basic_usage.lua
+
+# Drug discovery
+luajit drug_discovery.lua
+```
+
 ## Example Descriptions
 
 ### Simple/Basic Usage
@@ -116,6 +134,7 @@ Comprehensive pharmaceutical research example showing:
 - [Rust SDK Examples](./rust/sdk/README.md)
 - [Python Bindings](./python/bindings/README.md)
 - [Python SDK](./python/sdk/README.md)
+- [LuaJIT SDK](./lua/sdk/README.md)
 
 ## Prerequisites
 
@@ -138,6 +157,12 @@ pip install -e .
 ```bash
 # Build JNI library
 cargo build --release -p graphlite-jni
+```
+
+### LuaJIT
+```bash
+# Build GraphLite FFI shared library
+cargo build --release -p graphlite-ffi
 ```
 
 ## Contributing
