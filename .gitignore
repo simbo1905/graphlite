@@ -36,10 +36,12 @@ build/
 venv/
 *.so
 
-# Java artifacts (for bindings)
+# Java artifacts (for bindings and SDK)
 *.class
 .gradle/
 gradle/
+**/java-sdk/target/
+**/examples/java/**/target/
 
 # Temporary files
 *.tmp
