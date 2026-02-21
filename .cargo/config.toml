@@ -12,3 +12,9 @@
 #
 # To run tests with a specific thread count:
 #   RUST_TEST_THREADS=8 cargo test
+
+[build]
+# Enforce warning-free local builds/tests/docs by default.
+# This keeps local behavior aligned with CI policy.
+rustflags = ["-Dwarnings"]
+rustdocflags = ["-Dwarnings"]
