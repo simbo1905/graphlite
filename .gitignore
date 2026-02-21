@@ -51,6 +51,7 @@ gradle/
 # Runtime database directories
 graphlite-ffi/data/
 my_db/
+examples/python/sdk/drug_discovery_highlevel_sdk_db/
 
 # GitHub Actions local testing
 .secrets

@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GraphLite Query Console</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+      background: #F9FBFC;
+      color: #4C5773;
+      min-height: 100vh;
+      font-size: 14px;
+    }
+
+    .header {
+      background: #509EE3;
+      color: white;
+      padding: 0 24px;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.12);
+    }
+    .header-title { font-size: 15px; font-weight: 600; }
+    .header-sub   { font-size: 12px; opacity: .7; }
+
+    .main { padding: 20px 24px; display: flex; flex-direction: column; gap: 16px; max-width: 1140px; }
+
+    .card {
+      background: white;
+      border: 1px solid #EEECEC;
+      border-radius: 8px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.06);
+      overflow: hidden;
+    }
+    .card-body { padding: 14px 16px; }
+
+    .preset-row { display: flex; gap: 6px; margin-bottom: 10px; }
+    .preset-btn {
+      font-size: 12px; padding: 4px 11px;
+      border-radius: 6px;
+      border: 1px solid #DFDFE0;
+      background: #FAFBFC; color: #4C5773;
+      cursor: pointer; font-weight: 500;
+      transition: all .12s;
+    }
+    .preset-btn:hover  { border-color: #509EE3; color: #2E353B; background: #EEF4FB; }
+    .preset-btn.active { border-color: #509EE3; color: #2E353B; background: #EEF4FB; font-weight: 600; }
+
+    textarea {
+      width: 100%; padding: 10px 12px;
+      font-family: "SFMono-Regular", "Menlo", "Consolas", monospace;
+      font-size: 13px; line-height: 1.55;
+      border: 1px solid #DFDFE0;
+      border-radius: 6px;
+      background: #FAFBFC;
+      color: #2E353B;
+      resize: vertical;
+      min-height: 80px;
+      transition: border-color .15s, box-shadow .15s;
+    }
+    textarea:focus {
+      outline: none;
+      border-color: #509EE3;
+      box-shadow: 0 0 0 2px #509EE322;
+      background: white;
+    }
+
+    .run-row { display: flex; justify-content: flex-end; margin-top: 10px; }
+    .run-btn {
+      background: #509EE3; color: white;
+      border: none; border-radius: 6px;
+      padding: 8px 20px;
+      font-size: 13px; font-weight: 600;
+      cursor: pointer;
+      display: flex; align-items: center; gap: 7px;
+      transition: background .12s;
+    }
+    .run-btn:hover:not(:disabled)   { background: #3A8DD1; }
+    .run-btn:active:not(:disabled)  { background: #2E7CBD; }
+    .run-btn:disabled { opacity: .55; cursor: default; }
+
+    .tbl-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    thead th {
+      background: #F2F6FA;
+      padding: 9px 14px;
+      text-align: left;
+      font-size: 13px; font-weight: 600;
+      color: #4C5773;
+      border-bottom: 2px solid #E8EEF4;
+      white-space: nowrap;
+    }
+    thead th.num { text-align: right; }
+    tbody td {
+      padding: 8px 14px;
+      border-bottom: 1px solid #F3F3F3;
+      color: #2E353B;
+      font-variant-numeric: tabular-nums;
+      vertical-align: top;
+    }
+    tbody td.num { text-align: right; color: #3D8DD0; font-family: "SFMono-Regular", monospace; }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover td { background: #F5F8FC; }
+
+    .meta-bar {
+      display: none;
+      padding: 7px 16px;
+      border-top: 1px solid #F3F3F3;
+      background: #FAFAFA;
+      font-size: 12px; color: #9CA3AF;
+      gap: 16px; align-items: center;
+    }
+    .meta-bar b { color: #696E7B; }
+    .raw-toggle {
+      margin-left: auto;
+      background: none; border: none;
+      color: #509EE3; font-size: 12px; font-weight: 600;
+      cursor: pointer; padding: 0;
+    }
+    .raw-toggle:hover { text-decoration: underline; }
+
+    pre.raw {
+      display: none;
+      background: #F9FBFC;
+      border-top: 1px solid #EEECEC;
+      padding: 14px 16px;
+      font-size: 11px; font-family: "SFMono-Regular", monospace;
+      color: #696E7B; line-height: 1.6;
+      max-height: 220px; overflow: auto; margin: 0;
+    }
+
+    .msg { padding: 28px 20px; color: #B8BFCC; font-size: 13px; text-align: center; }
+    .msg.err { color: #E75454; }
+
+    .spinner {
+      width: 13px; height: 13px;
+      border: 2px solid rgba(255,255,255,.35);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin .65s linear infinite;
+      display: none;
+    }
+    @keyframes spin    { to { transform: rotate(360deg) } }
+    @keyframes fadein  { from { opacity: 0; transform: translateY(4px) } to { opacity: 1; transform: none } }
+    .fadein { animation: fadein .18s ease }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <span class="header-title">GraphLite</span>
+    <span class="header-sub">OpenResty · LuaJIT · read-only console</span>
+  </div>
+
+  <div class="main">
+
+    <div class="card">
+      <div class="card-body">
+        <div class="preset-row">
+          <button class="preset-btn" id="p-simple"  onclick="setPreset('simple')">Simple</button>
+          <button class="preset-btn" id="p-complex" onclick="setPreset('complex')">Complex</button>
+        </div>
+        <textarea id="query" spellcheck="false" autocomplete="off" rows="3"></textarea>
+        <div class="run-row">
+          <button class="run-btn" id="run-btn" onclick="runQuery()">
+            <svg id="run-icon" width="10" height="11" viewBox="0 0 10 11" fill="currentColor">
+              <path d="M1 1.5 9.5 5.5 1 9.5z"/>
+            </svg>
+            <div class="spinner" id="run-spin"></div>
+            Run
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="tbl-wrap" id="tbl">
+        <p class="msg">Run a query to see results.</p>
+      </div>
+      <div class="meta-bar" id="meta">
+        <span id="meta-rows"></span>
+        <span id="meta-cols"></span>
+        <span id="meta-time"></span>
+        <button class="raw-toggle" id="raw-toggle" onclick="toggleRaw()">Show raw JSON</button>
+      </div>
+      <pre class="raw" id="raw"></pre>
+    </div>
+
+  </div>
+
+  <script>
+    const QUERIES = {
+      simple:
+        "MATCH (p:Person) RETURN p.name AS name, p.age AS age ORDER BY p.name",
+      complex:
+        "MATCH (p:Person) WHERE p.age > 20 RETURN p.name AS name, p.age AS age, " +
+        "CASE WHEN p.age > 30 THEN 'senior' WHEN p.age > 25 THEN 'mid' ELSE 'junior' END AS tier " +
+        "ORDER BY p.age DESC"
+    };
+
+    let rawVisible = false;
+    let activePreset = null;
+
+    function setPreset(name) {
+      activePreset = name;
+      document.getElementById('query').value = QUERIES[name];
+      document.getElementById('p-simple').classList.toggle('active', name === 'simple');
+      document.getElementById('p-complex').classList.toggle('active', name === 'complex');
+    }
+
+    document.getElementById('query').addEventListener('input', function () {
+      const v = this.value;
+      const match = v === QUERIES.simple ? 'simple' : v === QUERIES.complex ? 'complex' : null;
+      activePreset = match;
+      document.getElementById('p-simple').classList.toggle('active', match === 'simple');
+      document.getElementById('p-complex').classList.toggle('active', match === 'complex');
+    });
+
+    document.getElementById('query').addEventListener('keydown', function (e) {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') { e.preventDefault(); runQuery(); }
+    });
+
+    function toggleRaw() {
+      rawVisible = !rawVisible;
+      document.getElementById('raw').style.display = rawVisible ? 'block' : 'none';
+      document.getElementById('raw-toggle').textContent = rawVisible ? 'Hide raw JSON' : 'Show raw JSON';
+    }
+
+    function busy(on) {
+      document.getElementById('run-btn').disabled = on;
+      document.getElementById('run-icon').style.display = on ? 'none' : '';
+      document.getElementById('run-spin').style.display = on ? 'block' : 'none';
+    }
+
+    function esc(s) {
+      return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    function unwrap(v) {
+      if (v == null) return null;
+      if (typeof v !== 'object') return v;
+      const keys = Object.keys(v);
+      if (keys.length === 1) {
+        const val = v[keys[0]];
+        if (keys[0] === 'Number') return val % 1 === 0 ? Math.trunc(val) : val;
+        return val;
+      }
+      return v;
+    }
+
+    function renderCell(v) {
+      if (v == null) return '<span style="color:#D0D3D9;font-style:italic">null</span>';
+      if (typeof v === 'object') return '<span style="color:#9CA3AF">' + esc(JSON.stringify(v)) + '</span>';
+      return esc(String(v));
+    }
+
+    function buildTable(data) {
+      const tblEl  = document.getElementById('tbl');
+      const metaEl = document.getElementById('meta');
+      const rawEl  = document.getElementById('raw');
+
+      if (data && data.error) {
+        tblEl.innerHTML = '<p class="msg err">' + esc(data.error) + '</p>';
+        metaEl.style.display = 'none';
+        return;
+      }
+
+      const rows = Array.isArray(data && data.rows) ? data.rows : null;
+      if (!rows)        { tblEl.innerHTML = '<p class="msg">Unexpected response format.</p>'; return; }
+      if (!rows.length) { tblEl.innerHTML = '<p class="msg">0 rows.</p>'; metaEl.style.display = 'none'; return; }
+
+      const cols = (Array.isArray(data.variables) && data.variables.length)
+        ? data.variables
+        : Object.keys(rows[0].values || rows[0]);
+
+      const numCols = new Set();
+      rows.forEach(function (r) {
+        var vals = r.values || r;
+        cols.forEach(function (c) {
+          if (typeof unwrap(vals[c]) === 'number') numCols.add(c);
+        });
+      });
+
+      const head = cols.map(function (c) {
+        return '<th class="' + (numCols.has(c) ? 'num' : '') + '">' + esc(c) + '</th>';
+      }).join('');
+
+      const body = rows.map(function (r) {
+        var vals = r.values || r;
+        return '<tr>' + cols.map(function (c) {
+          var v = unwrap(vals[c]);
+          return '<td class="' + (numCols.has(c) ? 'num' : '') + '">' + renderCell(v) + '</td>';
+        }).join('') + '</tr>';
+      }).join('');
+
+      tblEl.innerHTML =
+        '<div class="fadein"><table>' +
+        '<thead><tr>' + head + '</tr></thead>' +
+        '<tbody>' + body + '</tbody>' +
+        '</table></div>';
+
+      document.getElementById('meta-rows').innerHTML =
+        '<b>' + rows.length + '</b> row' + (rows.length !== 1 ? 's' : '');
+      document.getElementById('meta-cols').innerHTML =
+        '<b>' + cols.length + '</b> column' + (cols.length !== 1 ? 's' : '');
+      document.getElementById('meta-time').innerHTML =
+        '<b>' + (data.execution_time_ms != null ? data.execution_time_ms : '—') + '</b> ms';
+      metaEl.style.display = 'flex';
+
+      rawEl.textContent = JSON.stringify(data, null, 2);
+      if (!rawVisible) rawEl.style.display = 'none';
+    }
+
+    async function runQuery() {
+      const q = document.getElementById('query').value.trim();
+      if (!q) return;
+
+      const tblEl  = document.getElementById('tbl');
+      const metaEl = document.getElementById('meta');
+
+      busy(true);
+      tblEl.innerHTML = '<p class="msg">Running\u2026</p>';
+      metaEl.style.display = 'none';
+
+      try {
+        const ctrl  = new AbortController();
+        const timer = setTimeout(function () { ctrl.abort(); }, 15000);
+        let res;
+
+        try {
+          res = await fetch('/graphsite.lua?query=' + encodeURIComponent(q), { signal: ctrl.signal });
+          clearTimeout(timer);
+        } catch (err) {
+          clearTimeout(timer);
+          tblEl.innerHTML = '<p class="msg err">' + esc(
+            err.name === 'AbortError' ? 'Request timed out. Is OpenResty running?' : 'Network error \u2014 ' + err.message
+          ) + '</p>';
+          return;
+        }
+
+        let data;
+        try { data = JSON.parse(await res.text()); }
+        catch (_) {
+          tblEl.innerHTML = '<p class="msg err">HTTP ' + res.status + ' \u2014 response is not valid JSON.</p>';
+          return;
+        }
+
+        buildTable(data);
+      } finally {
+        busy(false);
+      }
+    }
+
+    setPreset('simple');
+    runQuery();
+  </script>
+</body>
+</html>

@@ -22,6 +22,18 @@ examples/
 └── java/
     └── bindings/      # Java bindings examples
         └── BasicUsage.java
+└── luajit/
+    ├── bindings/      # LuaJIT FFI examples
+    │   └── basic_usage.lua
+    └── openresty/     # OpenResty integration demo
+        ├── nginx.conf.in
+        ├── index.html
+        ├── graphsite.lua
+        ├── graphlite.lua
+        ├── setup.lua
+        ├── setup.sh
+        ├── run_openresty.sh
+        └── run_integration_test.sh
 ```
 
 ## Quick Start by Language
@@ -83,6 +95,21 @@ Then run the example:
 ```bash
 cd examples/java/bindings
 mvn clean compile exec:java
+```
+
+### LuaJIT Examples
+
+#### FFI Bindings (LuaJIT)
+```bash
+cd examples/luajit/bindings
+luajit basic_usage.lua
+```
+
+#### OpenResty Integration
+```bash
+cd examples/luajit/openresty
+./setup.sh
+./run_openresty.sh
 ```
 
 ## Example Descriptions
