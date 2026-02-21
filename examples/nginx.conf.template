@@ -1,0 +1,41 @@
+worker_processes 1;
+daemon off;
+error_log stderr;
+pid nginx.pid;
+
+events {
+    worker_connections 1024;
+}
+
+http {
+    include {{NGINX_MIME_TYPES}};
+    default_type application/octet-stream;
+    access_log /dev/stdout;
+    
+    server {
+        listen 8080;
+        server_name localhost;
+        
+        root {{PROJECT_DIR}}/examples;
+        index index.html;
+        
+        location / {
+            try_files $uri $uri/ =404;
+            add_header Cache-Control "no-cache, no-store, must-revalidate";
+            add_header Pragma "no-cache";
+            add_header Expires "0";
+        }
+        
+        # Serve JS files with correct MIME type
+        location ~ \.js$ {
+            add_header Content-Type application/javascript;
+            add_header Cache-Control "no-cache, no-store, must-revalidate";
+        }
+        
+        # Serve JSON files
+        location ~ \.json$ {
+            add_header Content-Type application/json;
+            add_header Cache-Control "no-cache, no-store, must-revalidate";
+        }
+    }
+}

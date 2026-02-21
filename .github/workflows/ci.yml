@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-wasip1
+
+      - uses: xmake-io/github-action-setup-xmake@v1
+        with:
+          xmake-version: latest
+
+      - uses: bytecodealliance/actions/wasmtime/setup@v1
+        with:
+          version: latest
+
+      - name: Run compatibility suite (Unix)
+        if: runner.os != 'Windows'
+        run: xmake run test_all
+
+      - name: Build and Test (Windows)
+        if: runner.os == 'Windows'
+        # Windows quickjs-rs build is broken, so we skip test_js.
+        # We also skip 'check' (clippy) because it compiles dev-dependencies (quickjs) for tests.
+        # Core compilation and Rust/WASM behavior are verified by test_rust/test_wasm.
+        run: |
+          xmake run demo_build
+          xmake run test_rust
+          xmake run test_wasm
