@@ -2,12 +2,17 @@
 --[[
   GraphLite Lua 5.4 Basic Usage Demo
 
-  Minimal demo using the graphlite_lua C module.
+  Minimal demo using the graphlite_lua C module and dkjson.
   Follows the same flow as examples/java/bindings/BasicUsage.java.
 
-  Run: lua5.4 basic_usage.lua
-  (Ensure graphlite_lua.so is in package.cpath and libgraphlite_ffi is in library path)
+  Run: make run
 ]]
+
+-- Add the locally installed luarocks directory to package.path
+local script_dir = debug.getinfo(1, "S").source:sub(2):match("(.*[/\\])") or "./"
+package.path = package.path .. ";" .. script_dir .. "lua_modules/share/lua/5.4/?.lua"
+
+local dkjson = require("dkjson")
 
 print("=== GraphLite Lua 5.4 Bindings Example ===\n")
 
@@ -23,6 +28,27 @@ print("Using temporary database: " .. db_path .. "\n")
 
 -- Load module (requires graphlite_lua.so in package.cpath)
 local gl = require("graphlite_lua")
+
+-- Helper to execute a query, parse JSON, and return a clean table
+local function query_parsed(db, session_id, query_str)
+  local raw_json = db:query(session_id, query_str)
+  local result, pos, err = dkjson.decode(raw_json, 1, nil)
+  if err then
+    error("JSON Parse Error: " .. tostring(err) .. "\nRaw JSON: " .. raw_json)
+  end
+  return result
+end
+
+-- Helper to unwrap GraphLite's nested value types (e.g. {"String":"Alice"})
+local function unwrap_value(v)
+  if type(v) == "table" then
+    if v.String then return v.String end
+    if v.Number then return v.Number end
+    if type(v.Boolean) ~= "nil" then return v.Boolean end
+    if type(v.Null) ~= "nil" then return nil end
+  end
+  return v
+end
 
 -- 1. Open database
 print("1. Opening database...")
@@ -51,31 +77,39 @@ print("   [OK] Inserted 3 persons\n")
 
 -- 5. Query data
 print("5. Querying: All persons' age and name")
-local result = db:query(session, "MATCH (p:Person) RETURN p.name as name, p.age as age")
-print("   Found " .. result.row_count .. " persons:")
-for _, row in ipairs(result.rows) do
-  print("   - " .. tostring(row.name) .. ": " .. tostring(row.age) .. " years old")
+local result = query_parsed(db, session, "MATCH (p:Person) RETURN p.name as name, p.age as age")
+local rows = result.rows or {}
+print("   Found " .. #rows .. " persons:")
+for _, row in ipairs(rows) do
+  local name = unwrap_value(row.values.name)
+  local age = unwrap_value(row.values.age)
+  print("   - " .. tostring(name) .. ": " .. tostring(age) .. " years old")
 end
 print()
 
 -- 6. Filter with WHERE
 print("6. Filtering: Persons older than 25 years in the ascending order of age")
-result = db:query(session,
+result = query_parsed(db, session,
   "MATCH (p:Person) WHERE p.age > 25 " ..
   "RETURN p.name as name, p.age as age ORDER BY p.age ASC")
-print("   Found " .. result.row_count .. " persons over 25:")
-for _, row in ipairs(result.rows) do
-  print("   - " .. tostring(row.name) .. ": " .. tostring(row.age) .. " years old")
+rows = result.rows or {}
+print("   Found " .. #rows .. " persons over 25:")
+for _, row in ipairs(rows) do
+  local name = unwrap_value(row.values.name)
+  local age = unwrap_value(row.values.age)
+  print("   - " .. tostring(name) .. ": " .. tostring(age) .. " years old")
 end
 print()
 
 -- 7. Aggregation
 print("7. Aggregation query...")
-result = db:query(session, "MATCH (p:Person) RETURN count(p) as total, avg(p.age) as avg_age")
-if result.row_count > 0 then
-  local row = result.rows[1]
-  print("   Total persons: " .. tostring(row.total))
-  local avg_age = row.avg_age
+result = query_parsed(db, session, "MATCH (p:Person) RETURN count(p) as total, avg(p.age) as avg_age")
+rows = result.rows or {}
+if #rows > 0 then
+  local row = rows[1]
+  local total = unwrap_value(row.values.total)
+  local avg_age = unwrap_value(row.values.avg_age)
+  print("   Total persons: " .. tostring(total))
   if type(avg_age) == "number" then
     print("   Average age: " .. string.format("%.2f", avg_age))
   else
@@ -86,10 +120,11 @@ print()
 
 -- 8. Get column values
 print("8. Extracting column values...")
-result = db:query(session, "MATCH (p:Person) RETURN p.name as name")
+result = query_parsed(db, session, "MATCH (p:Person) RETURN p.name as name")
+rows = result.rows or {}
 local names = {}
-for _, row in ipairs(result.rows) do
-  table.insert(names, tostring(row.name))
+for _, row in ipairs(rows) do
+  table.insert(names, tostring(unwrap_value(row.values.name)))
 end
 print("   All names: " .. table.concat(names, ", ") .. "\n")
 

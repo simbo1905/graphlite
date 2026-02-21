@@ -8,6 +8,7 @@ A minimal Lua 5.4 "basic usage" demo using a tiny C99 shim module. This proves t
 
 - **Lua 5.4** (PUC Lua, not LuaJIT)
 - **Lua 5.4 development files** (e.g. `liblua5.4-dev` on Debian/Ubuntu)
+- **luarocks** (to install pure-Lua dependencies like `dkjson` for result parsing)
 - **GraphLite FFI shared library** (built from this repo)
 
 ## Build Steps
@@ -27,7 +28,16 @@ This produces:
 
 The `graphlite.h` header is generated in `graphlite-ffi/` during this build.
 
-### 2. Build the Lua C module
+### 2. Run the environment setup
+
+From this directory (`examples/lua/bindings_c/`):
+
+```bash
+make setup
+```
+This executes `setup.sh`, checking for Lua 5.4 and `luarocks`, and installs `dkjson` locally into a `lua_modules` directory. This library is used by the Lua script to parse JSON query results.
+
+### 3. Build the Lua C module
 
 From this directory (`examples/lua/bindings_c/`):
 
@@ -37,13 +47,13 @@ make
 
 This compiles `graphlite_lua.c` into a shared library:
 - **Linux:** `graphlite_lua.so`
-- **macOS:** `graphlite_lua.dylib`
+- **macOS:** `graphlite_lua.so`
 
 The Makefile uses:
 - `-I.` for the GraphLite header (as it's bundled locally)
 - `-L../../target/release -lgraphlite_ffi` for linking
 
-### 3. Set runtime library path
+### 4. Set runtime library path
 
 The Lua module links against the GraphLite FFI library. At runtime, the dynamic linker must find it.
 
@@ -57,15 +67,15 @@ export LD_LIBRARY_PATH="$(pwd)/../../target/release:$LD_LIBRARY_PATH"
 export DYLD_LIBRARY_PATH="$(pwd)/../../target/release:$DYLD_LIBRARY_PATH"
 ```
 
-Or run via `make run`, which sets the path automatically.
+Or run via `make run`, which builds the library and sets the path automatically.
 
 ## Run the demo
 
 ```bash
-lua5.4 basic_usage.lua
+make run
 ```
 
-Ensure `graphlite_lua.so` (or `.dylib`) is in the current directory or in `LUA_CPATH`, and that the GraphLite FFI library is in `LD_LIBRARY_PATH` / `DYLD_LIBRARY_PATH`.
+Ensure `graphlite_lua.so` is in the current directory or in `LUA_CPATH`, and that the GraphLite FFI library is in `LD_LIBRARY_PATH` / `DYLD_LIBRARY_PATH`.
 
 ## C Module API (Minimal)
 
@@ -75,7 +85,7 @@ Ensure `graphlite_lua.so` (or `.dylib`) is in the current directory or in `LUA_C
 | `gl.open(db_path)` | Opens database, returns db userdata |
 | `db:create_session(user)` | Creates session, returns session_id string |
 | `db:execute(session_id, query)` | Executes statement (DDL/INSERT), no return |
-| `db:query(session_id, query)` | Executes query, returns `{rows = {...}, row_count = N}` |
+| `db:query(session_id, query)` | Executes query, returns a raw JSON string |
 | `db:close_session(session_id)` | Closes session |
 | `db:close()` | Closes database |
 
@@ -89,11 +99,11 @@ Ensure `graphlite_lua.so` (or `.dylib`) is in the current directory or in `LUA_C
 | `db:close` | `graphlite_close` |
 | `db:create_session` | `graphlite_create_session` |
 | `db:execute` | `graphlite_query` (result discarded) |
-| `db:query` | `graphlite_query` (JSON parsed to Lua tables) |
+| `db:query` | `graphlite_query` (raw JSON returned) |
 | `db:close_session` | `graphlite_close_session` |
 | `gl.version` | `graphlite_version` |
 
-Query results are returned as JSON from the FFI; the C module parses them into Lua tables (`rows` = array of row objects, each row = map of column name → value).
+Query results are returned as raw JSON from the FFI. The C module returns this JSON string directly, allowing Lua to parse it using any robust JSON library (e.g. `dkjson`).
 
 ## Smoke Checklist
 
@@ -112,7 +122,8 @@ Query results are returned as JSON from the FFI; the C module parses them into L
 
 | File | Description |
 |------|-------------|
-| `graphlite_lua.c` | C99 Lua 5.4 module; FFI bindings + minimal JSON parser for results |
+| `graphlite_lua.c` | C99 Lua 5.4 module; basic FFI bindings wrapper |
 | `basic_usage.lua` | Demo script (mirrors Java BasicUsage flow) |
-| `Makefile` | Builds the Lua module |
+| `Makefile` | Builds the Lua module and runs tests |
+| `setup.sh` | Prepares environment and installs `dkjson` |
 | `README.md` | This file |

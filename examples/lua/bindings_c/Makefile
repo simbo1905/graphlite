@@ -35,12 +35,15 @@ LUA_CFLAGS := $(shell pkg-config --cflags lua5.4 2>/dev/null || pkg-config --cfl
 LUA_LIBS := $(shell pkg-config --libs lua5.4 2>/dev/null || pkg-config --libs lua 2>/dev/null || echo "-llua5.4")
 
 CC ?= gcc
-CFLAGS := -std=c99 -Wall -O2 -fPIC $(LUA_CFLAGS) -I.
+CFLAGS := -std=c99 -Wall -Werror -O2 -fPIC $(LUA_CFLAGS) -I.
 LDFLAGS := -shared -L$(TARGET_RELEASE) -lgraphlite_ffi $(LUA_LIBS) $(LDFLAGS_EXTRA)
 
-.PHONY: all build run clean check-ffi
+.PHONY: all setup build run clean check-ffi
 
 all: build
+
+setup:
+	./setup.sh
 
 build: check-ffi $(MODULE)
 
