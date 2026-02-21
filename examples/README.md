@@ -96,6 +96,9 @@ Session-centric API:
 ```bash
 cd examples/lua/sdk
 
+# Install dkjson via LuaRocks (local .luarocks tree)
+./setup.sh
+
 # Basic usage / smoke test
 luajit basic_usage.lua
 

@@ -15,6 +15,7 @@ if not package.path:find(local_path, 1, true) then
 end
 
 local locator = require("sdk_locator")
+local json_utils = require("json_utils")
 
 local sdk_root, locate_err = locator.locate_sdk()
 if not sdk_root then
@@ -24,6 +25,11 @@ end
 locator.add_to_package_path(sdk_root)
 
 local GraphLite = require("src.connection").GraphLite
+local dkjson, dkjson_err = json_utils.require_dkjson(script_dir())
+if not dkjson then
+    io.stderr:write(dkjson_err .. "\n")
+    os.exit(1)
+end
 
 local function remove_tree(path)
     if SEP == "\\" then
@@ -66,6 +72,15 @@ local function print_result(title, result)
         print("  - " .. table.concat(parts, ", "))
     end
     print("")
+end
+
+local function query_with_dkjson(session, query)
+    local raw_json = session:query_raw(query)
+    local decoded, err = json_utils.decode_query_json(raw_json, dkjson)
+    if not decoded then
+        error("Failed to decode query JSON with dkjson: " .. tostring(err), 2)
+    end
+    return decoded
 end
 
 local function run()
@@ -158,7 +173,7 @@ local function run()
 
         print("5) Running analytical queries...\n")
 
-        local potent = session:query([[
+        local potent = query_with_dkjson(session, [[
             MATCH (c:Compound)-[i:INHIBITS]->(p:Protein)
             WHERE i.IC50 < 30
             RETURN c.name AS compound, p.name AS target, i.IC50 AS ic50_nM
@@ -166,13 +181,13 @@ local function run()
         ]])
         print_result("Query A: Potent compounds (IC50 < 30 nM)", potent)
 
-        local traversal = session:query([[
+        local traversal = query_with_dkjson(session, [[
             MATCH (c:Compound {id: 'CP-002'})-[:TESTED_IN]->(a:Assay)-[:MEASURES_ACTIVITY_ON]->(p:Protein)
             RETURN c.name AS compound, a.name AS assay, p.name AS target
         ]])
         print_result("Query B: Traversal from compound -> assay -> target", traversal)
 
-        local aggregation = session:query([[
+        local aggregation = query_with_dkjson(session, [[
             MATCH (p:Protein)<-[:INHIBITS]-(c:Compound)
             RETURN p.name AS protein, COUNT(c) AS inhibitor_count
         ]])

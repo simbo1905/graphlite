@@ -47,7 +47,19 @@ libgraphlite_ffi.{so,dylib,dll} (Rust FFI)
    - Linux: `sudo apt-get install luajit`
    - macOS: `brew install luajit`
 
-3. **Checkout the Lua SDK branch in a separate clone/location**:
+3. **Install dkjson with LuaRocks** (local tree for this example):
+   ```bash
+   cd examples/lua/sdk
+   ./setup.sh
+   ```
+
+   `setup.sh` validates:
+   - `lua` is installed and reports version `>= 5.4`
+   - `luarocks` is installed
+
+   then installs `dkjson` into `examples/lua/sdk/.luarocks/`.
+
+4. **Checkout the Lua SDK branch in a separate clone/location**:
    ```bash
    cd ~/github/deepgraphai
    git clone https://github.com/deepgraphai/GraphLite.git  # if needed
@@ -76,6 +88,7 @@ A representative pharmaceutical graph workflow with:
   - IC50 filtering
   - traversal query
   - aggregation query
+- explicit raw JSON bytes decoding with `dkjson` (no hand-written JSON parser)
 
 Run:
 

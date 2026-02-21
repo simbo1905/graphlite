@@ -52,6 +52,9 @@ gradle/
 graphlite-ffi/data/
 my_db/
 
+# Local LuaRocks trees used by Lua examples
+examples/lua/sdk/.luarocks/
+
 # GitHub Actions local testing
 .secrets
 .env

@@ -15,6 +15,7 @@ if not package.path:find(local_path, 1, true) then
 end
 
 local locator = require("sdk_locator")
+local json_utils = require("json_utils")
 
 local sdk_root, locate_err = locator.locate_sdk()
 if not sdk_root then
@@ -24,6 +25,11 @@ end
 locator.add_to_package_path(sdk_root)
 
 local GraphLite = require("src.connection").GraphLite
+local dkjson, dkjson_err = json_utils.require_dkjson(script_dir())
+if not dkjson then
+    io.stderr:write(dkjson_err .. "\n")
+    os.exit(1)
+end
 
 local function remove_tree(path)
     if SEP == "\\" then
@@ -42,6 +48,15 @@ local function make_temp_db_dir()
     end
     local stamp = tostring(os.time()) .. "_" .. tostring(math.random(1000, 9999))
     return base .. SEP .. "graphlite_lua_sdk_example_" .. stamp
+end
+
+local function query_with_dkjson(session, query)
+    local raw_json = session:query_raw(query)
+    local decoded, err = json_utils.decode_query_json(raw_json, dkjson)
+    if not decoded then
+        error("Failed to decode query JSON with dkjson: " .. tostring(err), 2)
+    end
+    return decoded
 end
 
 local function run()
@@ -67,7 +82,7 @@ local function run()
         session:execute("INSERT (:Person {name: 'Alice', age: 31})")
         session:execute("INSERT (:Person {name: 'Bob', age: 27})")
 
-        local result = session:query(
+        local result = query_with_dkjson(session,
             "MATCH (p:Person) RETURN p.name AS name, p.age AS age ORDER BY p.age DESC"
         )
 
