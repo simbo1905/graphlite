@@ -1,0 +1,29 @@
+[package]
+name = "graphlite-json"
+version = "0.1.0"
+edition = "2021"
+description = "JSON layer for GraphLite with JDT transforms and JTD validation"
+
+[dependencies]
+graphlite = { path = "../graphlite" }
+graphlite-rust-sdk = { path = "../sdk-rust" }
+jdt-codegen = { path = "../vendors/jdt-codegen" }
+jtd = "0.3"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "1"
+
+[dev-dependencies]
+tempfile = "3"
+
+[[example]]
+name = "e2e_json_layer"
+path = "examples/e2e_json_layer.rs"
+
+[[example]]
+name = "e2e_validation_rejection"
+path = "examples/e2e_validation_rejection.rs"
+
+[[example]]
+name = "e2e_jdt_transforms"
+path = "examples/e2e_jdt_transforms.rs"
