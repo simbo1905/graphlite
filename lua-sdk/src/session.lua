@@ -27,10 +27,6 @@ function Session:query(query_str)
   if self._closed then
     error(QueryError.new("Session is closed"))
   end
-  local db = self._conn._db
-  if not db then
-    error(QueryError.new("Database is closed"))
-  end
   local json_str = self:query_raw(query_str)
   local ok, data = pcall(json_util.decode, json_str)
   if not ok then
@@ -60,8 +56,7 @@ end
 
 function Session:close()
   if not self._closed and self._conn and self._conn._db then
-    local ok, err_code = graphlite_ffi.close_session(self._conn._db, self._session_id)
-    -- Best effort - don't error on close
+    graphlite_ffi.close_session(self._conn._db, self._session_id)
     self._closed = true
   end
 end

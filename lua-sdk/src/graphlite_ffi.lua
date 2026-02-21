@@ -5,7 +5,6 @@
 ]]
 
 local ffi = require("ffi")
-local C = ffi.C
 
 -- Platform-aware library loading
 local function find_library()

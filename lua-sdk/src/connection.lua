@@ -29,9 +29,10 @@ function GraphLite:session(username)
   if self._closed or not self._db then
     error(ConnectionError.new("Database is closed"))
   end
-  local session_id, err_code, err_name = graphlite_ffi.create_session(self._db, username)
+  local session_id, _, err_name = graphlite_ffi.create_session(self._db, username)
   if not session_id then
-    error(SessionError.new("Failed to create session for user '" .. tostring(username) .. "': " .. (err_name or "unknown")))
+    error(SessionError.new(
+      "Failed to create session for user '" .. tostring(username) .. "': " .. (err_name or "unknown")))
   end
   return session_module.Session.new(self, session_id, username)
 end

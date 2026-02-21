@@ -19,7 +19,6 @@ package.path = sdk_path .. "/?.lua;" .. package.path
 
 local connection = require("src.connection")
 local GraphLite = connection.GraphLite
-local errors = require("src.errors")
 
 local tmp_dir = os.getenv("TMPDIR") or os.getenv("TMP") or "/tmp"
 local db_path = tmp_dir .. "/graphlite_lua_sdk_smoke_" .. os.time()
