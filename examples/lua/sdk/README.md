@@ -58,7 +58,7 @@ libgraphlite_ffi.so (Rust)
    - `~/github/simbo1905/graphlite/lua-sdk/`
    - `~/github/deepgraphai/GraphLite/lua-sdk/`
 
-   Or set `GRAPH_LITE_LUA_SDK` to your lua-sdk path.
+   Or set `GRAPH_LITE_LUA_SDK` to your lua-sdk path. The examples use `sdk_locator.lua` to find the SDK.
 
 ## Examples
 

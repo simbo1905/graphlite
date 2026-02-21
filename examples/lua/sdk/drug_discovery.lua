@@ -14,13 +14,19 @@
   Run: luajit drug_discovery.lua
 ]]
 
--- Add script directory to package.path for bootstrap
+-- Add script directory to package.path for sdk_locator
 local src = debug.getinfo(1, "S").source
 if src:sub(1, 1) == "@" then src = src:sub(2) end
 local script_dir = src:match("(.+)/[^/]+$") or "."
 package.path = script_dir .. "/?.lua;" .. package.path
 
-require("bootstrap")
+local locator = require("sdk_locator")
+local sdk_root, err = locator.locate_sdk()
+if not sdk_root then
+  io.stderr:write(err .. "\n")
+  os.exit(1)
+end
+locator.add_to_package_path(sdk_root)
 
 local connection = require("src.connection")
 local GraphLite = connection.GraphLite
