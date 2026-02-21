@@ -19,9 +19,13 @@ examples/
 │   │   └── drug_discovery.py
 │   └── sdk/           # High-level SDK examples
 │       └── drug_discovery.py
-└── java/
-    └── bindings/      # Java bindings examples
-        └── BasicUsage.java
+├── java/
+│   └── bindings/      # Java bindings examples
+│       └── BasicUsage.java
+└── lua/
+    └── bindings_c/    # Lua 5.4 via tiny C module
+        ├── graphlite_lua.c
+        └── basic_usage.lua
 ```
 
 ## Quick Start by Language
@@ -85,6 +89,19 @@ cd examples/java/bindings
 mvn clean compile exec:java
 ```
 
+### Lua 5.4 Examples
+
+#### C Module Bindings
+Lua 5.4 has no built-in FFI; this demo uses a tiny C module:
+```bash
+# Build Rust FFI library first
+cargo build --release -p graphlite-ffi
+
+cd examples/lua/bindings_c
+make
+make run
+```
+
 ## Example Descriptions
 
 ### Simple/Basic Usage
@@ -116,6 +133,7 @@ Comprehensive pharmaceutical research example showing:
 - [Rust SDK Examples](./rust/sdk/README.md)
 - [Python Bindings](./python/bindings/README.md)
 - [Python SDK](./python/sdk/README.md)
+- [Lua 5.4 C Module](./lua/bindings_c/README.md)
 
 ## Prerequisites
 
@@ -138,6 +156,15 @@ pip install -e .
 ```bash
 # Build JNI library
 cargo build --release -p graphlite-jni
+```
+
+### Lua 5.4
+```bash
+# Install Lua 5.4 dev headers (Debian/Ubuntu)
+sudo apt install lua5.4 liblua5.4-dev
+
+# Build FFI library
+cargo build --release -p graphlite-ffi
 ```
 
 ## Contributing
