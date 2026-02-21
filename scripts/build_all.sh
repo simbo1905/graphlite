@@ -146,8 +146,9 @@ print_success "Prerequisites checked"
 echo ""
 
 # Step 3: Build Rust library and CLI binary
+# RUSTFLAGS=-D warnings: fail on any compiler warning
 print_info "Building Rust library and CLI binary..."
-cargo build $CARGO_FLAGS || {
+RUSTFLAGS="-D warnings" cargo build $CARGO_FLAGS || {
     print_error "Rust build failed"
     exit 1
 }

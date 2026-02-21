@@ -22,9 +22,9 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# Default options
+# Default options (strict=true: fail on warnings)
 FIX_MODE=false
-STRICT_MODE=false
+STRICT_MODE=true
 PEDANTIC_MODE=false
 ALL_TARGETS=false
 CLIPPY_FLAGS=""
@@ -62,6 +62,10 @@ while [[ $# -gt 0 ]]; do
             STRICT_MODE=true
             shift
             ;;
+        --no-strict)
+            STRICT_MODE=false
+            shift
+            ;;
         --pedantic)
             PEDANTIC_MODE=true
             shift
@@ -83,8 +87,8 @@ while [[ $# -gt 0 ]]; do
             echo "  --help       Show this help message"
             echo ""
             echo "Examples:"
-            echo "  $0                    # Basic clippy check"
-            echo "  $0 --strict           # Treat warnings as errors (CI mode)"
+            echo "  $0                    # Basic clippy check (strict by default)"
+            echo "  $0 --no-strict        # Allow warnings (dev only)"
             echo "  $0 --fix              # Auto-fix suggestions"
             echo "  $0 --all --strict     # Check all targets with strict mode"
             echo "  $0 --pedantic         # Extra strict linting"
@@ -92,7 +96,8 @@ while [[ $# -gt 0 ]]; do
             echo "Modes:"
             echo "  Default:    Standard lints for main library code"
             echo "  --all:      Check library + binaries + tests + examples"
-            echo "  --strict:   Fail on any warnings (recommended for CI)"
+            echo "  --strict:   Fail on any warnings (default)"
+            echo "  --no-strict: Allow warnings (dev only, CI will fail)"
             echo "  --pedantic: Enable additional pedantic lints"
             echo "  --fix:      Automatically apply safe fixes"
             exit 0
@@ -151,6 +156,9 @@ if [ "$STRICT_MODE" = true ]; then
     print_info "Strict mode: Warnings will be treated as errors"
 fi
 
+# Allow FFI-related and known-acceptable lints (suppress when use is obviously due to FFI)
+LINT_FLAGS="$LINT_FLAGS -A clippy::not_unsafe_ptr_arg_deref -A clippy::approx_constant"
+
 if [ "$PEDANTIC_MODE" = true ]; then
     LINT_FLAGS="$LINT_FLAGS -W clippy::pedantic"
     print_info "Pedantic mode: Extra strict linting enabled"
@@ -203,7 +211,7 @@ if [ "$FIX_MODE" = true ]; then
 fi
 
 if [ "$STRICT_MODE" = false ]; then
-    print_warning "Run with --strict to treat warnings as errors (CI mode)"
+    print_warning "Run with --strict to treat warnings as errors (default for CI)"
 fi
 
 if [ "$ALL_TARGETS" = false ]; then

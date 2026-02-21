@@ -16,6 +16,10 @@
 //! - Database handles are closed with `graphlite_close`
 //! - No concurrent access to the same handle without synchronization
 
+#![deny(warnings)]
+// FFI: pointers are used only for C interop; error_out may be null when caller omits it
+#![allow(clippy::not_unsafe_ptr_arg_deref)]
+
 use graphlite::QueryCoordinator;
 use std::ffi::{CStr, CString};
 use std::os::raw::c_char;

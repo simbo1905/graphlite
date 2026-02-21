@@ -94,9 +94,8 @@ fi
 # 2. Check code formatting
 run_check "Code formatting check" "cargo fmt --all -- --check" || true
 
-# 3. Run clippy
-# Note: Allowing warnings to match CI workflow (see .github/workflows/ci.yml for TODO)
-run_check "Clippy linting" "cargo clippy --all-targets --all-features -- -A clippy::not_unsafe_ptr_arg_deref -A clippy::approx_constant" || true
+# 3. Run clippy (--strict: fail on any warnings)
+run_check "Clippy linting" "./scripts/clippy_all.sh --all --strict" || true
 
 # Quick mode stops here
 if [ "$TEST_MODE" = "quick" ]; then
