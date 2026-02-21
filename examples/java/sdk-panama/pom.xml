@@ -53,8 +53,6 @@
                 <version>3.4.1</version>
                 <configuration>
                     <mainClass>DrugDiscovery</mainClass>
-                    <arguments/>
-                    <commandlineArgs>--enable-native-access=ALL-UNNAMED</commandlineArgs>
                     <systemProperties>
                         <systemProperty>
                             <key>graphlite.ffi.lib</key>

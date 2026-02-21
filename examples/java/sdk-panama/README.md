@@ -122,6 +122,6 @@ pharmaceutical data (IC50, Ki, selectivity index).
 
 | Requirement | Version |
 |---|---|
-| Java (JDK) | 22+ (targets Panama FFM API, JEP 454) |
-| Maven | 3.9+ |
+| Java (JDK) | 21+ (21 requires `--enable-preview`; 22+ works without) |
+| Maven | 3.8+ |
 | Rust / Cargo | stable |

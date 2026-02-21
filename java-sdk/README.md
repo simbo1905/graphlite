@@ -35,12 +35,13 @@ Your Application
 
 | Requirement | Version |
 |---|---|
-| Java (JDK) | 22+ (tested with 25) |
-| Maven | 3.9+ |
+| Java (JDK) | 21+ (21 requires `--enable-preview`; 22+ works out of the box) |
+| Maven | 3.8+ |
 | Rust / Cargo | stable (for building the FFI library) |
 
-The FFM API (JEP 454) was finalized in Java 22. This SDK targets Java 22+ and
-works out of the box with Java 25.
+The FFM API (JEP 454) was finalized in Java 22. On Java 21 (JEP 442, third
+preview), pass `--enable-preview` to both the compiler and the JVM.  On Java
+22+ no preview flag is needed.
 
 ## Quick Start
 
@@ -81,10 +82,14 @@ Add to your `pom.xml`:
 export LD_LIBRARY_PATH=/path/to/graphlite/target/release   # Linux
 export DYLD_LIBRARY_PATH=/path/to/graphlite/target/release  # macOS
 
+# Java 21 (preview):
+java --enable-preview --enable-native-access=ALL-UNNAMED -cp ... YourApp
+
+# Java 22+ (finalized):
 java --enable-native-access=ALL-UNNAMED -cp ... YourApp
 ```
 
-Or set the library path explicitly:
+Or set the library path explicitly via system property:
 
 ```bash
 java --enable-native-access=ALL-UNNAMED \
