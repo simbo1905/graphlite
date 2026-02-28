@@ -32,6 +32,12 @@
 //! See the documentation for more details:
 //! - [Getting Started Guide](../docs/tutorials/Getting-started.md)
 //! - [System Procedures](../docs/reference/System-procedures.md)
+#![allow(clippy::collapsible_match)]
+#![allow(clippy::field_reassign_with_default)]
+#![allow(clippy::manual_is_multiple_of)]
+#![allow(clippy::new_ret_no_self)]
+#![allow(clippy::too_many_arguments)]
+#![allow(clippy::type_complexity)]
 
 // Public modules - exposed to external users
 pub mod coordinator;
