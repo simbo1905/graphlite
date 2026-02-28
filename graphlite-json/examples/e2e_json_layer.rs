@@ -24,9 +24,18 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // 1. Save JSON without validation
     println!("1. Saving JSON documents (no validation)...");
-    layer.save_json(&json!({"id": 1, "name": "Alice", "email": "alice@example.com"}), None)?;
-    layer.save_json(&json!({"id": 2, "name": "Bob", "email": "bob@example.com"}), None)?;
-    layer.save_json(&json!({"id": 3, "name": "Charlie", "email": "charlie@example.com"}), None)?;
+    layer.save_json(
+        &json!({"id": 1, "name": "Alice", "email": "alice@example.com"}),
+        None,
+    )?;
+    layer.save_json(
+        &json!({"id": 2, "name": "Bob", "email": "bob@example.com"}),
+        None,
+    )?;
+    layer.save_json(
+        &json!({"id": 3, "name": "Charlie", "email": "charlie@example.com"}),
+        None,
+    )?;
     println!("   ✓ Saved 3 documents\n");
 
     // 2. Save with JTD validation
@@ -42,10 +51,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // 3. Query and display
     println!("3. Querying all JSON documents...");
-    let docs = layer.query_json(
-        "MATCH (j:JsonDocument) RETURN j.json as json",
-        "json",
-    )?;
+    let docs = layer.query_json("MATCH (j:JsonDocument) RETURN j.json as json", "json")?;
     println!("   Found {} documents:", docs.len());
     for (i, doc) in docs.iter().enumerate() {
         println!("   [{}] {:?}", i + 1, doc);

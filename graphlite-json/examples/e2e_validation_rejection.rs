@@ -36,7 +36,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Invalid - wrong type for score
     println!("2. Invalid: score as string...");
-    match layer.save_json(&json!({"username": "player2", "score": "high"}), Some(&schema)) {
+    match layer.save_json(
+        &json!({"username": "player2", "score": "high"}),
+        Some(&schema),
+    ) {
         Err(JsonLayerError::ValidationFailed(msg)) => println!("   ✓ Rejected: {}", msg),
         other => panic!("Expected ValidationFailed, got {:?}", other),
     }

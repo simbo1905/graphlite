@@ -1,8 +1,8 @@
 //! JSON layer implementation for GraphLite
 
 use crate::error::{JsonLayerError, Result};
-use graphlite_sdk::Session;
 use graphlite::Value as GraphLiteValue;
+use graphlite_sdk::Session;
 use jdt_codegen::apply as jdt_apply;
 use serde_json::Value;
 
@@ -54,7 +54,10 @@ impl<'a> JsonLayer<'a> {
             .execute(&format!("SESSION SET SCHEMA /{schema}"))
             .map_err(|e| JsonLayerError::GraphLite(e.to_string()))?;
         // Use full path for CREATE GRAPH - GraphLite's IF NOT EXISTS may not handle "Duplicate entry" message
-        if let Err(e) = self.session.execute(&format!("CREATE GRAPH IF NOT EXISTS {full_path}")) {
+        if let Err(e) = self
+            .session
+            .execute(&format!("CREATE GRAPH IF NOT EXISTS {full_path}"))
+        {
             let err_str = e.to_string();
             if !err_str.contains("already exists") && !err_str.contains("Duplicate entry") {
                 return Err(JsonLayerError::GraphLite(err_str));
@@ -78,8 +81,9 @@ impl<'a> JsonLayer<'a> {
         let schema_obj = schema
             .as_object()
             .ok_or_else(|| JsonLayerError::InvalidSchema("Schema must be a JSON object".into()))?;
-        let serde_schema: SerdeSchema = serde_json::from_value(Value::Object(schema_obj.clone()))
-            .map_err(|e| JsonLayerError::InvalidSchema(e.to_string()))?;
+        let serde_schema: SerdeSchema =
+            serde_json::from_value(Value::Object(schema_obj.clone()))
+                .map_err(|e| JsonLayerError::InvalidSchema(e.to_string()))?;
         let jtd_schema = Schema::from_serde_schema(serde_schema)
             .map_err(|e| JsonLayerError::InvalidSchema(e.to_string()))?;
         jtd_schema
@@ -107,7 +111,8 @@ impl<'a> JsonLayer<'a> {
             self.validate_with_jtd(json, s)?;
         }
         self.ensure_schema()?;
-        let json_str = serde_json::to_string(json).map_err(|e| JsonLayerError::InvalidJson(e.to_string()))?;
+        let json_str =
+            serde_json::to_string(json).map_err(|e| JsonLayerError::InvalidJson(e.to_string()))?;
         let escaped = Self::escape_gql_string(&json_str);
         let label = &self.config.document_label;
         let prop = &self.config.json_property;
@@ -197,7 +202,10 @@ mod tests {
     fn test_escape_gql_string() {
         assert_eq!(JsonLayer::escape_gql_string("hello"), "hello");
         assert_eq!(JsonLayer::escape_gql_string("say 'hi'"), "say \\'hi\\'");
-        assert_eq!(JsonLayer::escape_gql_string(r"path\to\file"), r"path\\to\\file");
+        assert_eq!(
+            JsonLayer::escape_gql_string(r"path\to\file"),
+            r"path\\to\\file"
+        );
     }
 
     #[test]
@@ -214,7 +222,9 @@ mod tests {
 
         let doc = json!({"name": "Alice", "age": 30});
         layer.save_json(&doc, None).unwrap();
-        layer.save_json(&json!({"name": "Bob", "age": 25}), None).unwrap();
+        layer
+            .save_json(&json!({"name": "Bob", "age": 25}), None)
+            .unwrap();
 
         let docs = layer
             .query_json("MATCH (j:JsonDocument) RETURN j.json as json", "json")
@@ -283,7 +293,9 @@ mod tests {
         };
         let layer = JsonLayer::new(&session, config);
 
-        layer.save_json(&json!({"name": "Alice", "age": 30}), None).unwrap();
+        layer
+            .save_json(&json!({"name": "Alice", "age": 30}), None)
+            .unwrap();
         // Use @jdt.replace to anonymize age
         let transform = json!({"@jdt.replace": {"@jdt.path": "$.age", "@jdt.value": 0}});
         let results = layer
