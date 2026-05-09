@@ -14,7 +14,7 @@ env:
 jobs:
   lint:
     name: Lint and Format Check
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -61,7 +61,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [blacksmith-4vcpu-ubuntu-2404, macos-latest]
         build-mode: [debug, release]
 
     steps:
@@ -129,7 +129,7 @@ jobs:
 
   security-audit:
     name: Security Audit
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -147,7 +147,7 @@ jobs:
 
   check-code-patterns:
     name: Code Pattern Checks
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -206,7 +206,7 @@ jobs:
 
   coverage:
     name: Code Coverage
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     # Only run coverage on main branch or manual dispatch to save CI time
     # Coverage is expensive (5-15 min) and not needed for every PR
     if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
